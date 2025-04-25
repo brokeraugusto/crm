@@ -1,5 +1,7 @@
+
 import { Button } from "@/components/ui/button";
-import { Menu, Bell, User } from "lucide-react";
+import { Menu, Bell, User, Sun, Moon } from "lucide-react";
+import { useTheme } from "@/components/theme/ThemeProvider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +23,7 @@ type NavbarProps = {
 
 export function Navbar({ sidebarOpen, setSidebarOpen }: NavbarProps) {
   const { user } = useAuth();
+  const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -45,7 +48,7 @@ export function Navbar({ sidebarOpen, setSidebarOpen }: NavbarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
+    <header className="sticky top-0 z-30 bg-background border-b">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex">
@@ -60,6 +63,16 @@ export function Navbar({ sidebarOpen, setSidebarOpen }: NavbarProps) {
             </Button>
           </div>
           <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+              className="relative"
+            >
+              {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+              <span className="sr-only">Alternar tema</span>
+            </Button>
+
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
               <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
