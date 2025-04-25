@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Menu, Bell, User } from "lucide-react";
 import {
@@ -10,6 +9,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
 
 type NavbarProps = {
   sidebarOpen: boolean;
@@ -17,6 +20,30 @@ type NavbarProps = {
 };
 
 export function Navbar({ sidebarOpen, setSidebarOpen }: NavbarProps) {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      toast({
+        title: "Logout realizado com sucesso",
+        description: "Até logo!",
+      });
+      
+      navigate("/auth");
+    } catch (error: any) {
+      toast({
+        title: "Erro ao fazer logout",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
       <div className="px-4 sm:px-6 lg:px-8">
@@ -46,16 +73,18 @@ export function Navbar({ sidebarOpen, setSidebarOpen }: NavbarProps) {
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarImage src="" alt="Perfil" />
-                    <AvatarFallback className="bg-primary text-white">CP</AvatarFallback>
+                    <AvatarFallback className="bg-primary text-white">
+                      {user?.user_metadata.nome?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'CP'}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">João Silva</p>
+                    <p className="text-sm font-medium leading-none">{user?.user_metadata.nome || 'Usuário'}</p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      joao@casaproxima.com.br
+                      {user?.email}
                     </p>
                   </div>
                 </DropdownMenuLabel>
@@ -67,7 +96,7 @@ export function Navbar({ sidebarOpen, setSidebarOpen }: NavbarProps) {
                   Configurações
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-600">
+                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                   Sair
                 </DropdownMenuItem>
               </DropdownMenuContent>

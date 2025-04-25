@@ -9,7 +9,409 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      compromissos: {
+        Row: {
+          created_at: string
+          data_fim: string
+          data_inicio: string
+          descricao: string | null
+          id: string
+          imovel_id: string | null
+          lead_id: string | null
+          local: string | null
+          status: string
+          tipo: string
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_fim: string
+          data_inicio: string
+          descricao?: string | null
+          id?: string
+          imovel_id?: string | null
+          lead_id?: string | null
+          local?: string | null
+          status?: string
+          tipo: string
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_fim?: string
+          data_inicio?: string
+          descricao?: string | null
+          id?: string
+          imovel_id?: string | null
+          lead_id?: string | null
+          local?: string | null
+          status?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compromissos_imovel_id_fkey"
+            columns: ["imovel_id"]
+            isOneToOne: false
+            referencedRelation: "imoveis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compromissos_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compromissos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conhecimento: {
+        Row: {
+          categoria: string
+          conteudo: string
+          created_at: string
+          id: string
+          tags: string[] | null
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          categoria: string
+          conteudo: string
+          created_at?: string
+          id?: string
+          tags?: string[] | null
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          categoria?: string
+          conteudo?: string
+          created_at?: string
+          id?: string
+          tags?: string[] | null
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conhecimento_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documentos: {
+        Row: {
+          categoria: string
+          created_at: string
+          descricao: string | null
+          formato: string
+          id: string
+          is_template: boolean | null
+          tipo: string
+          titulo: string
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          categoria: string
+          created_at?: string
+          descricao?: string | null
+          formato: string
+          id?: string
+          is_template?: boolean | null
+          tipo: string
+          titulo: string
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          descricao?: string | null
+          formato?: string
+          id?: string
+          is_template?: boolean | null
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      imoveis: {
+        Row: {
+          area_construida: number | null
+          area_total: number | null
+          bairro: string
+          banheiros: number | null
+          cep: string | null
+          cidade: string
+          condominio: number | null
+          created_at: string
+          descricao: string | null
+          destaque: boolean | null
+          endereco: string
+          estado: string
+          finalidade: string
+          id: string
+          iptu: number | null
+          preco: number
+          quartos: number | null
+          status: string
+          tipo: string
+          titulo: string
+          updated_at: string
+          user_id: string
+          vagas: number | null
+        }
+        Insert: {
+          area_construida?: number | null
+          area_total?: number | null
+          bairro: string
+          banheiros?: number | null
+          cep?: string | null
+          cidade: string
+          condominio?: number | null
+          created_at?: string
+          descricao?: string | null
+          destaque?: boolean | null
+          endereco: string
+          estado: string
+          finalidade: string
+          id?: string
+          iptu?: number | null
+          preco: number
+          quartos?: number | null
+          status?: string
+          tipo: string
+          titulo: string
+          updated_at?: string
+          user_id: string
+          vagas?: number | null
+        }
+        Update: {
+          area_construida?: number | null
+          area_total?: number | null
+          bairro?: string
+          banheiros?: number | null
+          cep?: string | null
+          cidade?: string
+          condominio?: number | null
+          created_at?: string
+          descricao?: string | null
+          destaque?: boolean | null
+          endereco?: string
+          estado?: string
+          finalidade?: string
+          id?: string
+          iptu?: number | null
+          preco?: number
+          quartos?: number | null
+          status?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+          vagas?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imoveis_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      imoveis_fotos: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          destaque: boolean | null
+          id: string
+          imovel_id: string
+          ordem: number | null
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          destaque?: boolean | null
+          id?: string
+          imovel_id: string
+          ordem?: number | null
+          url: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          destaque?: boolean | null
+          id?: string
+          imovel_id?: string
+          ordem?: number | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imoveis_fotos_imovel_id_fkey"
+            columns: ["imovel_id"]
+            isOneToOne: false
+            referencedRelation: "imoveis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      imoveis_videos: {
+        Row: {
+          created_at: string
+          id: string
+          imovel_id: string
+          ordem: number | null
+          titulo: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          imovel_id: string
+          ordem?: number | null
+          titulo?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          imovel_id?: string
+          ordem?: number | null
+          titulo?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imoveis_videos_imovel_id_fkey"
+            columns: ["imovel_id"]
+            isOneToOne: false
+            referencedRelation: "imoveis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          interesse: string | null
+          nome: string
+          observacoes: string | null
+          origem: string | null
+          status: string
+          telefone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          interesse?: string | null
+          nome: string
+          observacoes?: string | null
+          origem?: string | null
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          interesse?: string | null
+          nome?: string
+          observacoes?: string | null
+          origem?: string | null
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          creci: string | null
+          email: string
+          id: string
+          nome: string
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          creci?: string | null
+          email: string
+          id: string
+          nome: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          creci?: string | null
+          email?: string
+          id?: string
+          nome?: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
