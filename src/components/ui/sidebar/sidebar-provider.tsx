@@ -4,6 +4,7 @@ import { TooltipProvider } from "../tooltip";
 import { SidebarContext } from "./types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { SidebarContextInstance } from "./use-sidebar";
 
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
@@ -81,7 +82,7 @@ export const SidebarProvider = React.forwardRef<
     );
 
     return (
-      <SidebarContext.Provider value={contextValue}>
+      <SidebarContextInstance.Provider value={contextValue}>
         <TooltipProvider delayDuration={0}>
           <div
             style={
@@ -101,7 +102,7 @@ export const SidebarProvider = React.forwardRef<
             {children}
           </div>
         </TooltipProvider>
-      </SidebarContext.Provider>
+      </SidebarContextInstance.Provider>
     );
   }
 );

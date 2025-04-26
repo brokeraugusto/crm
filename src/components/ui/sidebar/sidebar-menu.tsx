@@ -63,7 +63,7 @@ export const SidebarMenuButton = React.forwardRef<
     {
       asChild = false,
       isActive = false,
-      variant = "default",
+      variant,
       size = "default",
       tooltip,
       className,
@@ -74,13 +74,18 @@ export const SidebarMenuButton = React.forwardRef<
     const Comp = asChild ? Slot : "button";
     const { isMobile, state } = useSidebar();
 
+    // Ensure variant is either 'default' or 'outline'
+    const safeVariant = variant === "outline" ? "outline" : "default";
+    // Ensure size is one of 'default', 'sm', or 'lg'
+    const safeSize = size === "sm" || size === "lg" ? size : "default";
+
     const button = (
       <Comp
         ref={ref}
         data-sidebar="menu-button"
-        data-size={size}
+        data-size={safeSize}
         data-active={isActive}
-        className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+        className={cn(sidebarMenuButtonVariants({ variant: safeVariant, size: safeSize }), className)}
         {...props}
       />
     );
