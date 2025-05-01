@@ -10,7 +10,30 @@ export default function Dashboard() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
         <div className="flex flex-wrap gap-2">
-          {/* Botões já existem, mas vamos ajustar com novos ícones e organização */}
+          <Button asChild size="sm" className="flex items-center">
+            <Link to="/leads?new=true">
+              <UserPlus className="h-4 w-4 mr-1" />
+              <span>Novo Lead</span>
+            </Link>
+          </Button>
+          <Button asChild size="sm" className="flex items-center">
+            <Link to="/imoveis?new=true">
+              <HousePlus className="h-4 w-4 mr-1" />
+              <span>Novo Imóvel</span>
+            </Link>
+          </Button>
+          <Button asChild size="sm" className="flex items-center">
+            <Link to="/agenda?new=true">
+              <CalendarPlus className="h-4 w-4 mr-1" />
+              <span>Nova Atividade</span>
+            </Link>
+          </Button>
+          <Button asChild size="sm" className="flex items-center">
+            <Link to="/documentos?new=true">
+              <FilePlus className="h-4 w-4 mr-1" />
+              <span>Gerar Documento</span>
+            </Link>
+          </Button>
         </div>
       </div>
 
@@ -86,7 +109,7 @@ export default function Dashboard() {
             >
               <Link to="/agenda?new=true" className="flex items-center gap-1">
                 <CalendarPlus className="h-4 w-4" />
-                <span>Nova atividade</span>
+                <span>Nova Atividade</span>
               </Link>
             </Button>
           </CardContent>
@@ -111,7 +134,7 @@ export default function Dashboard() {
             >
               <Link to="/documentos?new=true" className="flex items-center gap-1">
                 <FilePlus className="h-4 w-4" />
-                <span>Gerar documento</span>
+                <span>Gerar Documento</span>
               </Link>
             </Button>
           </CardContent>

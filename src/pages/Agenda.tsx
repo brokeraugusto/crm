@@ -13,6 +13,12 @@ import {
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AtividadeForm } from "@/components/agenda/AtividadeForm";
+import { AtividadeDetail } from "@/components/agenda/AtividadeDetail";
+import { Atividade } from "@/types/leads";
+import { useTodasAtividades } from "@/hooks/useTodasAtividades";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Tipos de eventos com cores
 const eventTypes = {
@@ -32,72 +38,59 @@ const eventTypes = {
     label: "Contato",
     color: "bg-yellow-100 text-yellow-700 hover:bg-yellow-200",
   },
+  vistoria: {
+    label: "Vistoria",
+    color: "bg-orange-100 text-orange-700 hover:bg-orange-200",
+  },
 };
 
-// Dados de exemplo
-const agendaData = [
-  {
-    id: 1,
-    titulo: "Visita ao Apartamento Paulista",
-    tipo: "visita",
-    cliente: "Ana Silva",
-    data: new Date(2023, 4, 15, 10, 30),
-    duracao: "1 hora",
-    endereco: "Av. Paulista, 1000, São Paulo",
-    descricao: "Visita ao apartamento de 3 quartos na Av. Paulista",
-  },
-  {
-    id: 2,
-    titulo: "Reunião com Carlos",
-    tipo: "reuniao",
-    cliente: "Carlos Oliveira",
-    data: new Date(2023, 4, 15, 14, 0),
-    duracao: "30 minutos",
-    endereco: "Escritório Central",
-    descricao: "Discutir opções de financiamento",
-  },
-  {
-    id: 3,
-    titulo: "Assinatura de Contrato",
-    tipo: "assinatura",
-    cliente: "Mariana Santos",
-    data: new Date(2023, 4, 16, 11, 0),
-    duracao: "1 hora",
-    endereco: "Escritório Central",
-    descricao: "Assinatura de contrato do loft",
-  },
-  {
-    id: 4,
-    titulo: "Ligação para Paulo",
-    tipo: "contato",
-    cliente: "Paulo Mendes",
-    data: new Date(2023, 4, 16, 15, 30),
-    duracao: "15 minutos",
-    endereco: "Telefônico",
-    descricao: "Verificar interesse na cobertura duplex",
-  },
-  {
-    id: 5,
-    titulo: "Visita à Casa em Condomínio",
-    tipo: "visita",
-    cliente: "Fernanda Lima",
-    data: new Date(2023, 4, 17, 9, 0),
-    duracao: "2 horas",
-    endereco: "Rua das Flores, 123, Alphaville",
-    descricao: "Mostrar a casa de 4 quartos no condomínio",
-  },
-];
-
 export default function Agenda() {
+  const { atividades, isLoading } = useTodasAtividades();
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [formOpen, setFormOpen] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [atividadeSelecionada, setAtividadeSelecionada] = useState<Atividade | null>(null);
   
   // Filtra eventos do dia selecionado
-  const eventosHoje = agendaData.filter(
-    (evento) => format(evento.data, "yyyy-MM-dd") === format(date || new Date(), "yyyy-MM-dd")
-  );
+  const eventosHoje = !isLoading ? atividades.filter(
+    (evento) => format(new Date(evento.data), "yyyy-MM-dd") === format(date || new Date(), "yyyy-MM-dd")
+  ) : [];
 
   // Ordena por horário
-  eventosHoje.sort((a, b) => a.data.getTime() - b.data.getTime());
+  eventosHoje.sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
+  
+  const handleOpenForm = (atividade?: Atividade) => {
+    if (atividade) {
+      setAtividadeSelecionada(atividade);
+      setEditMode(true);
+    } else {
+      setAtividadeSelecionada(null);
+      setEditMode(false);
+    }
+    setFormOpen(true);
+    setDetailOpen(false);
+  };
+
+  const handleOpenDetail = (atividade: Atividade) => {
+    setAtividadeSelecionada(atividade);
+    setDetailOpen(true);
+  };
+
+  const handleEditFromDetail = () => {
+    if (atividadeSelecionada) {
+      setDetailOpen(false);
+      setEditMode(true);
+      setFormOpen(true);
+    }
+  };
+
+  // Contador de eventos por dia para o calendário
+  const eventCountByDate = !isLoading ? atividades.reduce<Record<string, number>>((acc, evento) => {
+    const dateStr = format(new Date(evento.data), "yyyy-MM-dd");
+    acc[dateStr] = (acc[dateStr] || 0) + 1;
+    return acc;
+  }, {}) : {};
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -106,9 +99,9 @@ export default function Agenda() {
           <CalendarIcon className="h-5 w-5 text-muted-foreground" />
           <h1 className="text-2xl font-bold tracking-tight">Agenda</h1>
         </div>
-        <Button className="flex items-center gap-1">
+        <Button className="flex items-center gap-1" onClick={() => handleOpenForm()}>
           <Plus className="h-4 w-4" />
-          <span>Novo Compromisso</span>
+          <span>Nova Atividade</span>
         </Button>
       </div>
 
@@ -124,6 +117,18 @@ export default function Agenda() {
               onSelect={setDate}
               locale={ptBR}
               className="w-full"
+              modifiers={{
+                hasEvent: (date) => {
+                  const dateStr = format(date, "yyyy-MM-dd");
+                  return !!eventCountByDate[dateStr];
+                },
+              }}
+              modifiersStyles={{
+                hasEvent: { 
+                  fontWeight: "bold",
+                  backgroundColor: "rgba(var(--primary), 0.1)"
+                },
+              }}
             />
             <div className="p-4 border-t">
               <h3 className="font-medium mb-2">Tipos de Eventos</h3>
@@ -133,6 +138,20 @@ export default function Agenda() {
                     {label}
                   </Badge>
                 ))}
+              </div>
+            </div>
+            
+            <div className="p-4 border-t">
+              <h3 className="font-medium mb-3">Ações Rápidas</h3>
+              <div className="space-y-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full justify-start text-primary"
+                >
+                  <CalendarIcon className="h-4 w-4 mr-2" />
+                  Conectar com Google Agenda
+                </Button>
               </div>
             </div>
           </CardContent>
@@ -173,36 +192,64 @@ export default function Agenda() {
           </CardHeader>
           <CardContent>
             <div className="relative pl-6 border-l border-border">
-              {eventosHoje.length > 0 ? (
+              {isLoading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div key={`skeleton-${i}`} className="mb-8 relative -ml-8 pl-8">
+                    <div className="absolute -left-2 top-1 h-4 w-4 rounded-full bg-primary/20"></div>
+                    <div className="hover:bg-gray-50 p-4 rounded-lg transition-colors">
+                      <div className="flex flex-col md:flex-row justify-between md:items-center gap-2 mb-2">
+                        <div className="flex items-center gap-2">
+                          <Skeleton className="h-6 w-24" />
+                          <Skeleton className="h-4 w-32" />
+                        </div>
+                        <Skeleton className="h-9 w-24" />
+                      </div>
+                      <Skeleton className="h-6 w-3/4 mb-2" />
+                      <Skeleton className="h-4 w-1/2 mb-1" />
+                      <Skeleton className="h-4 w-2/3" />
+                    </div>
+                  </div>
+                ))
+              ) : eventosHoje.length > 0 ? (
                 eventosHoje.map((evento) => (
                   <div
                     key={evento.id}
-                    className="mb-8 relative hover:bg-gray-50 p-4 rounded-lg -ml-8 pl-8 transition-colors"
+                    className="mb-8 relative hover:bg-gray-50 p-4 rounded-lg -ml-8 pl-8 transition-colors cursor-pointer"
+                    onClick={() => handleOpenDetail(evento)}
                   >
                     <div className="absolute -left-2 top-1 h-4 w-4 rounded-full bg-primary"></div>
                     <div className="flex flex-col md:flex-row justify-between md:items-center gap-2 mb-2">
                       <div>
-                        <Badge className={eventTypes[evento.tipo as keyof typeof eventTypes].color}>
-                          {eventTypes[evento.tipo as keyof typeof eventTypes].label}
+                        <Badge className={eventTypes[evento.tipo as keyof typeof eventTypes]?.color || "bg-gray-100 text-gray-700"}>
+                          {eventTypes[evento.tipo as keyof typeof eventTypes]?.label || evento.tipo}
                         </Badge>
                         <span className="text-sm text-muted-foreground ml-2">
-                          {format(evento.data, "HH:mm")} • {evento.duracao}
+                          {format(new Date(evento.data), "HH:mm")} • {evento.duracao}
                         </span>
                       </div>
                       <div>
-                        <Button size="sm" variant="outline">
-                          Ver detalhes
+                        <Button size="sm" variant="outline" onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenForm(evento);
+                        }}>
+                          Editar
                         </Button>
                       </div>
                     </div>
                     <h3 className="font-bold">{evento.titulo}</h3>
-                    <p className="text-sm">
-                      Cliente: <span className="font-medium">{evento.cliente}</span>
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {evento.endereco}
-                    </p>
-                    <p className="text-sm mt-2">{evento.descricao}</p>
+                    {evento.cliente && (
+                      <p className="text-sm">
+                        Cliente: <span className="font-medium">{evento.cliente}</span>
+                      </p>
+                    )}
+                    {evento.endereco && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {evento.endereco}
+                      </p>
+                    )}
+                    {evento.descricao && (
+                      <p className="text-sm mt-2">{evento.descricao}</p>
+                    )}
                   </div>
                 ))
               ) : (
@@ -210,12 +257,43 @@ export default function Agenda() {
                   <p className="text-muted-foreground">
                     Nenhum compromisso para esta data.
                   </p>
+                  <Button 
+                    variant="outline" 
+                    className="mt-4"
+                    onClick={() => handleOpenForm()}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Adicionar Atividade
+                  </Button>
                 </div>
               )}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Dialog para formulário de atividade */}
+      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{editMode ? "Editar Atividade" : "Nova Atividade"}</DialogTitle>
+          </DialogHeader>
+          <AtividadeForm 
+            atividadeParaEditar={editMode ? atividadeSelecionada || undefined : undefined} 
+            onClose={() => setFormOpen(false)} 
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Componente para detalhes da atividade */}
+      {atividadeSelecionada && (
+        <AtividadeDetail
+          atividade={atividadeSelecionada}
+          isOpen={detailOpen}
+          onOpenChange={setDetailOpen}
+          onEdit={handleEditFromDetail}
+        />
+      )}
     </div>
   );
 }

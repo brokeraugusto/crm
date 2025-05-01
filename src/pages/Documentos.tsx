@@ -10,18 +10,32 @@ import {
   FilePlus,
   FolderPlus,
   Filter,
-  FolderOpen,
   ChevronRight,
   MoreHorizontal,
   File,
+  FileCheck,
+  FileSpreadsheet,
+  FileLock,
+  FileSignature,
+  FileWarning,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { TipoDocumento } from "@/hooks/useDocumentos";
+import { DocumentoForm } from "@/components/documentos/DocumentoForm";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // Dados de exemplo para os documentos
 const documentosData = [
@@ -92,6 +106,16 @@ const documentosData = [
   },
 ];
 
+// Tipos de documentos disponíveis para geração
+const tiposDocumentos: TipoDocumento[] = [
+  "Autorização de Venda (PF)",
+  "Autorização de Venda (PJ)",
+  "Autorização de Intermediação Locatícia",
+  "Contrato de Representação Exclusiva",
+  "Proposta de Compra",
+  "Compromisso de Compra e Venda",
+];
+
 // Ícones para formatos de arquivo
 const formatIcons: Record<string, JSX.Element> = {
   pdf: <File className="h-6 w-6 text-red-500" />,
@@ -101,6 +125,9 @@ const formatIcons: Record<string, JSX.Element> = {
 
 export default function Documentos() {
   const [activeTab, setActiveTab] = useState("todos");
+  const [documentoSelecionado, setDocumentoSelecionado] = useState<TipoDocumento | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [googleDriveDialogOpen, setGoogleDriveDialogOpen] = useState(false);
   
   // Filtrar documentos com base na tab ativa
   const documentosFiltrados = activeTab === "todos"
@@ -108,6 +135,11 @@ export default function Documentos() {
     : activeTab === "templates"
     ? documentosData.filter(doc => doc.tipo === "template")
     : documentosData.filter(doc => doc.tipo === "documento");
+
+  const handleDocumentoSelect = (tipo: TipoDocumento) => {
+    setDocumentoSelecionado(tipo);
+    setDialogOpen(true);
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -117,10 +149,46 @@ export default function Documentos() {
           <h1 className="text-2xl font-bold tracking-tight">Documentos</h1>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="flex items-center gap-1">
-            <FilePlus className="h-4 w-4" />
-            <span>Novo Documento</span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-1">
+                <FilePlus className="h-4 w-4" />
+                <span>Novo Documento</span>
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-72">
+              <DropdownMenuItem 
+                onClick={() => setGoogleDriveDialogOpen(true)}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <FileSpreadsheet className="h-4 w-4 text-blue-500" />
+                <span>Conectar com Google Drive</span>
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
+              
+              {tiposDocumentos.map((tipo) => (
+                <DropdownMenuItem
+                  key={tipo}
+                  onClick={() => handleDocumentoSelect(tipo)}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  {tipo.includes("Autorização") ? (
+                    <FileCheck className="h-4 w-4 text-green-600" />
+                  ) : tipo.includes("Representação") ? (
+                    <FileLock className="h-4 w-4 text-yellow-600" />
+                  ) : tipo.includes("Proposta") ? (
+                    <FileSignature className="h-4 w-4 text-blue-600" />
+                  ) : (
+                    <FileWarning className="h-4 w-4 text-orange-600" />
+                  )}
+                  <span>{tipo}</span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
           <Button className="flex items-center gap-1">
             <FolderPlus className="h-4 w-4" />
             <span>Novo Template</span>
@@ -192,6 +260,20 @@ export default function Documentos() {
                     </div>
                   </Card>
                 ))}
+
+                <Card className="overflow-hidden border-dashed border-2 border-border/50">
+                  <Button 
+                    variant="ghost" 
+                    className="h-full w-full p-8 flex flex-col items-center justify-center"
+                    onClick={() => setDialogOpen(true)}
+                  >
+                    <Plus className="h-10 w-10 text-muted-foreground mb-2" />
+                    <p className="font-medium">Gerar Novo Documento</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Clique para escolher um modelo
+                    </p>
+                  </Button>
+                </Card>
               </div>
             </CardContent>
           </Card>
@@ -286,6 +368,71 @@ export default function Documentos() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Dialog para selecionar e gerar documento */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {documentoSelecionado || "Gerar Documento"}
+            </DialogTitle>
+            <DialogDescription>
+              Preencha os dados para gerar o documento automaticamente.
+            </DialogDescription>
+          </DialogHeader>
+          {documentoSelecionado ? (
+            <DocumentoForm
+              tipo={documentoSelecionado}
+              onClose={() => setDialogOpen(false)}
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
+              {tiposDocumentos.map((tipo) => (
+                <Button
+                  key={tipo}
+                  variant="outline"
+                  className="justify-start h-auto py-3 px-4"
+                  onClick={() => handleDocumentoSelect(tipo)}
+                >
+                  <div className="flex flex-col items-start">
+                    <span className="font-medium">{tipo}</span>
+                    <span className="text-xs text-muted-foreground mt-1">
+                      Clique para preencher os dados
+                    </span>
+                  </div>
+                </Button>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para configuração do Google Drive */}
+      <Dialog open={googleDriveDialogOpen} onOpenChange={setGoogleDriveDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Conectar com Google Drive</DialogTitle>
+            <DialogDescription>
+              Configure a integração para salvar documentos no Google Drive automaticamente.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-3 rounded-md text-sm">
+              Esta funcionalidade requer autorização do Google. Você será redirecionado para fazer login e conceder as permissões necessárias.
+            </div>
+            
+            <Button className="w-full" onClick={() => {
+              // Simulando a integração com o Google
+              setTimeout(() => {
+                toast.success("Integração com Google Drive configurada com sucesso!");
+                setGoogleDriveDialogOpen(false);
+              }, 1500);
+            }}>
+              Conectar com Google Drive
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
