@@ -64,13 +64,16 @@ export function AuthForm() {
       if (signUpError) throw signUpError;
 
       if (authData.user) {
-        const { error: profileError } = await supabase.from('users').insert({
-          id: authData.user.id,
-          nome,
-          email,
-          telefone,
-          creci,
-        });
+        // Now insert into the users table we created
+        const { error: profileError } = await supabase
+          .from("users")
+          .insert({
+            id: authData.user.id,
+            nome,
+            email,
+            telefone,
+            creci,
+          });
 
         if (profileError) throw profileError;
       }
