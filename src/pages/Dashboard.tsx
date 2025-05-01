@@ -1,12 +1,9 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, Building2, CalendarCheck, FileText, UserPlus, HousePlus, CalendarPlus, FilePlus } from "lucide-react";
 import { Link } from "react-router-dom";
-
 export default function Dashboard() {
-  return (
-    <div className="space-y-6 animate-fade-in">
+  return <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
         <div className="flex flex-wrap gap-2">
@@ -51,16 +48,8 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground">
               +5 novos leads esta semana
             </p>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="absolute bottom-2 right-2 text-primary p-0 h-auto"
-              asChild
-            >
-              <Link to="/leads?new=true" className="flex items-center gap-1">
-                <UserPlus className="h-4 w-4" />
-                <span>Novo Lead</span>
-              </Link>
+            <Button variant="ghost" size="sm" className="absolute bottom-2 right-2 text-primary p-0 h-auto" asChild>
+              
             </Button>
           </CardContent>
         </Card>
@@ -76,16 +65,8 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground">
               +3 novos imóveis este mês
             </p>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="absolute bottom-2 right-2 text-primary p-0 h-auto"
-              asChild
-            >
-              <Link to="/imoveis?new=true" className="flex items-center gap-1">
-                <HousePlus className="h-4 w-4" />
-                <span>Novo Imóvel</span>
-              </Link>
+            <Button variant="ghost" size="sm" className="absolute bottom-2 right-2 text-primary p-0 h-auto" asChild>
+              
             </Button>
           </CardContent>
         </Card>
@@ -101,16 +82,8 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground">
               Próximo: Visita às 14:00
             </p>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="absolute bottom-2 right-2 text-primary p-0 h-auto"
-              asChild
-            >
-              <Link to="/agenda?new=true" className="flex items-center gap-1">
-                <CalendarPlus className="h-4 w-4" />
-                <span>Nova Atividade</span>
-              </Link>
+            <Button variant="ghost" size="sm" className="absolute bottom-2 right-2 text-primary p-0 h-auto" asChild>
+              
             </Button>
           </CardContent>
         </Card>
@@ -126,16 +99,8 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground">
               Últimos 30 dias
             </p>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="absolute bottom-2 right-2 text-primary p-0 h-auto"
-              asChild
-            >
-              <Link to="/documentos?new=true" className="flex items-center gap-1">
-                <FilePlus className="h-4 w-4" />
-                <span>Gerar Documento</span>
-              </Link>
+            <Button variant="ghost" size="sm" className="absolute bottom-2 right-2 text-primary p-0 h-auto" asChild>
+              
             </Button>
           </CardContent>
         </Card>
@@ -148,8 +113,9 @@ export default function Dashboard() {
             <CardTitle>Leads Recentes</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4 p-2 rounded-md hover:bg-muted/50 cursor-pointer">
+            {Array.from({
+            length: 5
+          }).map((_, i) => <div key={i} className="flex items-center gap-4 p-2 rounded-md hover:bg-muted/50 cursor-pointer">
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <Users className="h-5 w-5 text-primary" />
                 </div>
@@ -158,22 +124,11 @@ export default function Dashboard() {
                   <p className="text-xs text-muted-foreground">Interesse: Apartamento, 3 quartos</p>
                 </div>
                 <div className="ml-auto">
-                  <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                    i % 3 === 0 
-                      ? "bg-yellow-100 text-yellow-700" 
-                      : i % 3 === 1 
-                      ? "bg-green-100 text-green-700"
-                      : "bg-blue-100 text-blue-700"
-                  }`}>
-                    {i % 3 === 0 
-                      ? "Contato Inicial" 
-                      : i % 3 === 1 
-                      ? "Visita Agendada"
-                      : "Proposta"}
+                  <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${i % 3 === 0 ? "bg-yellow-100 text-yellow-700" : i % 3 === 1 ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>
+                    {i % 3 === 0 ? "Contato Inicial" : i % 3 === 1 ? "Visita Agendada" : "Proposta"}
                   </span>
                 </div>
-              </div>
-            ))}
+              </div>)}
           </CardContent>
         </Card>
 
@@ -182,8 +137,9 @@ export default function Dashboard() {
             <CardTitle>Próximos Compromissos</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4 p-2 rounded-md hover:bg-muted/50 cursor-pointer">
+            {Array.from({
+            length: 5
+          }).map((_, i) => <div key={i} className="flex items-center gap-4 p-2 rounded-md hover:bg-muted/50 cursor-pointer">
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <CalendarCheck className="h-5 w-5 text-primary" />
                 </div>
@@ -198,11 +154,9 @@ export default function Dashboard() {
                 <div className="ml-auto">
                   <Button variant="ghost" size="sm">Ver</Button>
                 </div>
-              </div>
-            ))}
+              </div>)}
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 }
