@@ -1,7 +1,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Building2, CalendarCheck, Plus } from "lucide-react";
+import { Users, Building2, CalendarCheck, FileText, UserPlus, HousePlus, CalendarPlus, FilePlus } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Dashboard() {
   return (
@@ -9,19 +10,13 @@ export default function Dashboard() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
         <div className="flex flex-wrap gap-2">
-          <Button className="flex items-center gap-1">
-            <Plus className="h-4 w-4" />
-            <span>Novo Lead</span>
-          </Button>
-          <Button variant="outline" className="flex items-center gap-1">
-            <Plus className="h-4 w-4" />
-            <span>Novo Imóvel</span>
-          </Button>
+          {/* Botões já existem, mas vamos ajustar com novos ícones e organização */}
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
+      {/* Cards de estatísticas rápidas */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="relative overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Leads Ativos
@@ -33,9 +28,20 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground">
               +5 novos leads esta semana
             </p>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="absolute bottom-2 right-2 text-primary p-0 h-auto"
+              asChild
+            >
+              <Link to="/leads?new=true" className="flex items-center gap-1">
+                <UserPlus className="h-4 w-4" />
+                <span>Novo Lead</span>
+              </Link>
+            </Button>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="relative overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Imóveis Disponíveis
@@ -47,9 +53,20 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground">
               +3 novos imóveis este mês
             </p>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="absolute bottom-2 right-2 text-primary p-0 h-auto"
+              asChild
+            >
+              <Link to="/imoveis?new=true" className="flex items-center gap-1">
+                <HousePlus className="h-4 w-4" />
+                <span>Novo Imóvel</span>
+              </Link>
+            </Button>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="relative overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Compromissos Hoje
@@ -61,10 +78,47 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground">
               Próximo: Visita às 14:00
             </p>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="absolute bottom-2 right-2 text-primary p-0 h-auto"
+              asChild
+            >
+              <Link to="/agenda?new=true" className="flex items-center gap-1">
+                <CalendarPlus className="h-4 w-4" />
+                <span>Nova atividade</span>
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+        <Card className="relative overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Documentos
+            </CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">12</div>
+            <p className="text-xs text-muted-foreground">
+              Últimos 30 dias
+            </p>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="absolute bottom-2 right-2 text-primary p-0 h-auto"
+              asChild
+            >
+              <Link to="/documentos?new=true" className="flex items-center gap-1">
+                <FilePlus className="h-4 w-4" />
+                <span>Gerar documento</span>
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
 
+      {/* Cards de dados detalhados */}
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="col-span-1">
           <CardHeader>
