@@ -30,6 +30,7 @@ const schema = z.object({
   interesse: z.string().optional(),
   status: z.string(),
   observacao: z.string().optional(),
+  user_id: z.string().optional(), // Adicionamos user_id ao schema
 });
 
 type LeadFormValues = z.infer<typeof schema>;
@@ -61,14 +62,12 @@ export function LeadForm({ defaultValues, onSubmit, isLoading }: LeadFormProps) 
       interesse: defaultValues?.interesse || "",
       status: defaultValues?.status || "novo",
       observacao: defaultValues?.observacao || "",
+      user_id: defaultValues?.user_id || user?.id,
     },
   });
 
   const handleSubmit = (values: LeadFormValues) => {
-    onSubmit({
-      ...values,
-      user_id: user?.id,
-    });
+    onSubmit(values);
   };
 
   return (

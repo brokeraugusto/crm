@@ -35,6 +35,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { LeadForm } from "@/components/leads/LeadForm";
 import { useLeads } from "@/hooks/useLeads";
