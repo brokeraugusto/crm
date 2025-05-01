@@ -1,4 +1,6 @@
 
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -19,12 +21,23 @@ import {
 import {
   ChevronDown,
   Filter,
+  Loader2,
   MoreHorizontal,
   Plus,
   Search,
   Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { LeadForm } from "@/components/leads/LeadForm";
+import { useLeads } from "@/hooks/useLeads";
 
 // Status dos leads com suas respectivas cores
 const statusMap: Record<string, { label: string; color: string }> = {
@@ -36,56 +49,29 @@ const statusMap: Record<string, { label: string; color: string }> = {
   perdido: { label: "Perdido", color: "bg-red-100 text-red-700" },
 };
 
-// Dados de exemplo para os leads
-const leadsData = [
-  {
-    id: 1,
-    nome: "Ana Silva",
-    telefone: "(11) 98765-4321",
-    email: "ana.silva@exemplo.com",
-    interesse: "Apartamento 3 quartos",
-    status: "novo",
-    dataCriacao: "15/04/2023",
-  },
-  {
-    id: 2,
-    nome: "Carlos Oliveira",
-    telefone: "(21) 98765-4321",
-    email: "carlos.oliveira@exemplo.com",
-    interesse: "Casa com quintal",
-    status: "contato",
-    dataCriacao: "20/04/2023",
-  },
-  {
-    id: 3,
-    nome: "Mariana Santos",
-    telefone: "(31) 98765-4321",
-    email: "mariana.santos@exemplo.com",
-    interesse: "Loft na área central",
-    status: "visita",
-    dataCriacao: "25/04/2023",
-  },
-  {
-    id: 4,
-    nome: "Paulo Mendes",
-    telefone: "(41) 98765-4321",
-    email: "paulo.mendes@exemplo.com",
-    interesse: "Cobertura duplex",
-    status: "proposta",
-    dataCriacao: "01/05/2023",
-  },
-  {
-    id: 5,
-    nome: "Fernanda Lima",
-    telefone: "(51) 98765-4321",
-    email: "fernanda.lima@exemplo.com",
-    interesse: "Casa em condomínio fechado",
-    status: "vendido",
-    dataCriacao: "10/05/2023",
-  },
-];
-
 export default function Leads() {
+  const navigate = useNavigate();
+  const [openDialog, setOpenDialog] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const { leads, isLoading, createLead, filter, setFilter } = useLeads();
+
+  // Filtrar leads baseado na busca
+  const filteredLeads = leads.filter(
+    (lead) =>
+      lead.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (lead.email && lead.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (lead.telefone && lead.telefone.includes(searchTerm))
+  );
+
+  const handleCreateLead = (data: any) => {
+    createLead.mutate(data, {
+      onSuccess: () => {
+        setOpenDialog(false);
+      },
+    });
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -93,10 +79,23 @@ export default function Leads() {
           <Users className="h-5 w-5 text-muted-foreground" />
           <h1 className="text-2xl font-bold tracking-tight">Leads</h1>
         </div>
-        <Button className="flex items-center gap-1">
-          <Plus className="h-4 w-4" />
-          <span>Novo Lead</span>
-        </Button>
+        <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-1">
+              <Plus className="h-4 w-4" />
+              <span>Novo Lead</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Novo Lead</DialogTitle>
+            </DialogHeader>
+            <LeadForm 
+              onSubmit={handleCreateLead} 
+              isLoading={createLead.isPending} 
+            />
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card>
@@ -108,6 +107,8 @@ export default function Leads() {
                 type="search"
                 placeholder="Buscar leads..."
                 className="pl-8 w-full"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
@@ -123,9 +124,13 @@ export default function Leads() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem>Todos</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilter(null)}>
+                    Todos
+                  </DropdownMenuItem>
                   {Object.entries(statusMap).map(([key, { label }]) => (
-                    <DropdownMenuItem key={key}>{label}</DropdownMenuItem>
+                    <DropdownMenuItem key={key} onClick={() => setFilter(key)}>
+                      {label}
+                    </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -133,64 +138,75 @@ export default function Leads() {
           </div>
 
           <div className="overflow-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Contato</TableHead>
-                  <TableHead>Interesse</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Data</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {leadsData.map((lead) => (
-                  <TableRow key={lead.id}>
-                    <TableCell className="font-medium">{lead.nome}</TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      <div>{lead.telefone}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {lead.email}
-                      </div>
-                    </TableCell>
-                    <TableCell>{lead.interesse}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={`${statusMap[lead.status].color} border-none`}
-                      >
-                        {statusMap[lead.status].label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{lead.dataCriacao}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Abrir menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Ver detalhes</DropdownMenuItem>
-                          <DropdownMenuItem>Editar</DropdownMenuItem>
-                          <DropdownMenuItem>Agendar visita</DropdownMenuItem>
-                          <DropdownMenuItem>WhatsApp</DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+            {isLoading ? (
+              <div className="flex justify-center items-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : filteredLeads.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Nenhum lead encontrado.
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Contato</TableHead>
+                    <TableHead>Interesse</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredLeads.map((lead) => (
+                    <TableRow key={lead.id}>
+                      <TableCell className="font-medium">{lead.nome}</TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <div>{lead.telefone || "—"}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {lead.email || "—"}
+                        </div>
+                      </TableCell>
+                      <TableCell>{lead.interesse || "—"}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={`${statusMap[lead.status].color} border-none`}
+                        >
+                          {statusMap[lead.status].label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {format(new Date(lead.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Abrir menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => navigate(`/leads/${lead.id}`)}>
+                              Ver detalhes
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => window.open(`https://wa.me/${lead.telefone?.replace(/\D/g, '')}`, '_blank')}>
+                              WhatsApp
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </div>
         </CardContent>
       </Card>

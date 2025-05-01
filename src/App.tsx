@@ -10,6 +10,7 @@ import { MainLayout } from "./components/layout/MainLayout";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Leads from "./pages/Leads";
+import LeadDetail from "./components/leads/LeadDetail";
 import Imoveis from "./pages/Imoveis";
 import Agenda from "./pages/Agenda";
 import Documentos from "./pages/Documentos";
@@ -47,6 +48,7 @@ const App = () => (
               }>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/leads" element={<Leads />} />
+                <Route path="/leads/:id" element={<LeadDetail />} />
                 <Route path="/imoveis" element={<Imoveis />} />
                 <Route path="/agenda" element={<Agenda />} />
                 <Route path="/documentos" element={<Documentos />} />

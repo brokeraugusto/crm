@@ -9,6 +9,189 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      atividades: {
+        Row: {
+          created_at: string
+          data: string
+          descricao: string | null
+          duracao: string
+          endereco: string | null
+          id: string
+          imovel_id: string | null
+          lead_id: string | null
+          tipo: string
+          titulo: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          data: string
+          descricao?: string | null
+          duracao: string
+          endereco?: string | null
+          id?: string
+          imovel_id?: string | null
+          lead_id?: string | null
+          tipo: string
+          titulo: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          descricao?: string | null
+          duracao?: string
+          endereco?: string | null
+          id?: string
+          imovel_id?: string | null
+          lead_id?: string | null
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atividades_imovel_id_fkey"
+            columns: ["imovel_id"]
+            isOneToOne: false
+            referencedRelation: "imoveis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      imoveis: {
+        Row: {
+          area: string
+          banheiros: number
+          created_at: string
+          descricao: string | null
+          endereco: string
+          id: string
+          imagem: string | null
+          preco: number
+          quartos: number
+          status: string
+          tipo: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          area: string
+          banheiros: number
+          created_at?: string
+          descricao?: string | null
+          endereco: string
+          id?: string
+          imagem?: string | null
+          preco: number
+          quartos: number
+          status: string
+          tipo: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          area?: string
+          banheiros?: number
+          created_at?: string
+          descricao?: string | null
+          endereco?: string
+          id?: string
+          imagem?: string | null
+          preco?: number
+          quartos?: number
+          status?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          interesse: string | null
+          nome: string
+          observacao: string | null
+          status: string
+          telefone: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          interesse?: string | null
+          nome: string
+          observacao?: string | null
+          status: string
+          telefone?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          interesse?: string | null
+          nome?: string
+          observacao?: string | null
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      leads_imoveis: {
+        Row: {
+          created_at: string
+          id: string
+          imovel_id: string
+          lead_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          imovel_id: string
+          lead_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          imovel_id?: string
+          lead_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_imoveis_imovel_id_fkey"
+            columns: ["imovel_id"]
+            isOneToOne: false
+            referencedRelation: "imoveis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_imoveis_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           created_at: string
