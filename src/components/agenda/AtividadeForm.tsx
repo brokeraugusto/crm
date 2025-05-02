@@ -66,6 +66,7 @@ export function AtividadeForm({
     defaultValues: atividadeParaEditar ? {
       ...atividadeParaEditar,
       data: new Date(atividadeParaEditar.data),
+      cliente: atividadeParaEditar.cliente || ""
     } : {
       titulo: "",
       tipo: "visita",
@@ -90,8 +91,9 @@ export function AtividadeForm({
       const atividadeData = {
         ...data,
         data: dataComHora.toISOString(),
-        lead_id: leadId,
-        imovel_id: imovelId,
+        duracao: data.duracao, // Ensuring duracao is always included and not optional
+        lead_id: leadId || null,
+        imovel_id: imovelId || null,
       };
       
       if (atividadeParaEditar) {

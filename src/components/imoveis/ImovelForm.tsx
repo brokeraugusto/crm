@@ -66,13 +66,26 @@ export function ImovelForm({ imovelParaEditar, onClose }: ImovelFormProps) {
 
   async function onSubmit(data: ImovelFormData) {
     try {
+      // Ensure all required fields are present
+      const imovelData = {
+        ...data,
+        endereco: data.endereco, // Ensure endereco is explicitly included
+        area: data.area,         // Ensure area is explicitly included
+        tipo: data.tipo,         // Ensure tipo is explicitly included
+        titulo: data.titulo,     // Ensure titulo is explicitly included
+        quartos: data.quartos,
+        banheiros: data.banheiros,
+        preco: data.preco,
+        status: data.status,
+      };
+      
       if (imovelParaEditar) {
         await atualizarImovel.mutateAsync({ 
           id: imovelParaEditar.id, 
-          ...data 
+          ...imovelData 
         });
       } else {
-        await criarImovel.mutateAsync(data);
+        await criarImovel.mutateAsync(imovelData);
       }
       onClose();
     } catch (error) {

@@ -50,4 +50,5 @@ export interface Atividade {
   created_at: string;
   updated_at: string;
   user_id?: string;
+  cliente?: string;
 }
