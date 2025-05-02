@@ -85,17 +85,17 @@ export function useRoles() {
       
       try {
         // Tentativa de usar a função RPC
-        const response = await supabase.rpc(
-          'has_permission' as any, 
+        const { data, error } = await supabase.rpc(
+          'has_permission', 
           { 
             user_id: user.id, 
             resource_name: resource, 
             action_name: action 
-          } as HasPermissionParams
+          } 
         );
         
-        if (!response.error) {
-          return response.data === true;
+        if (!error) {
+          return data === true;
         }
         
         // Se a função RPC falhar, usamos uma query direta
@@ -115,12 +115,12 @@ export function useRoles() {
       `;
       
       const { data: directPermissions, error: directError } = await supabase.rpc(
-        'query_permissions' as any, 
+        'query_permissions', 
         { 
           roles_array: roles, 
           resource_name: resource, 
           action_name: action 
-        } as QueryPermissionsParams
+        }
       );
       
       if (directError) {
