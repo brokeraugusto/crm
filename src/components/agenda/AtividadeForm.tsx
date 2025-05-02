@@ -89,9 +89,13 @@ export function AtividadeForm({
       dataComHora.setHours(horaNum, minutoNum);
       
       const atividadeData = {
-        ...data,
+        titulo: data.titulo, // Ensure título is explicitly included
+        tipo: data.tipo,     // Ensure tipo is explicitly included
         data: dataComHora.toISOString(),
-        duracao: data.duracao, // Ensuring duracao is always included and not optional
+        duracao: data.duracao,
+        endereco: data.endereco || null,
+        descricao: data.descricao || null,
+        cliente: data.cliente || null,
         lead_id: leadId || null,
         imovel_id: imovelId || null,
       };
