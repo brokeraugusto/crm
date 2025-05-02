@@ -86,13 +86,12 @@ export function useRoles() {
       try {
         // Tentativa de usar a função RPC
         const { data, error } = await supabase.rpc(
-          // Use a type cast that specifies we're calling an RPC function with specific params and return type
-          'has_permission' as unknown as keyof typeof supabase.rpc, 
+          'has_permission',
           { 
             user_id: user.id, 
             resource_name: resource, 
             action_name: action 
-          }
+          } as HasPermissionParams
         );
         
         if (!error) {
@@ -116,13 +115,12 @@ export function useRoles() {
       `;
       
       const { data: directPermissions, error: directError } = await supabase.rpc(
-        // Use a type cast that specifies we're calling an RPC function with specific params and return type
-        'query_permissions' as unknown as keyof typeof supabase.rpc, 
+        'query_permissions',
         { 
           roles_array: roles, 
           resource_name: resource, 
           action_name: action 
-        }
+        } as QueryPermissionsParams
       );
       
       if (directError) {
