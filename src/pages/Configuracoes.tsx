@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { Switch } from "@/components/ui/switch";
@@ -95,7 +94,8 @@ export default function Configuracoes() {
       
       // Mapear as roles para cada usuário
       const usersWithRoles: UserWithRoles[] = authUsers.users.map(authUser => {
-        const userData = usersData?.find(u => u.id === authUser.id) || {} as UserData;
+        // Garantir que userData seja tratado como UserData para ter acesso à propriedade avatar_url
+        const userData = usersData?.find(u => u.id === authUser.id) as UserData || {} as UserData;
         const userRoles = rolesData?.filter(r => r.user_id === authUser.id).map(r => r.role) || [];
         
         return {
