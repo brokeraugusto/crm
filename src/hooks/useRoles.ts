@@ -32,6 +32,19 @@ interface UserProfile {
   atualizado_em?: string;
 }
 
+// Types for RPC functions
+type HasPermissionParams = {
+  user_id: string;
+  resource_name: string;
+  action_name: string;
+}
+
+type QueryPermissionsParams = {
+  roles_array: UserRole[];
+  resource_name: string;
+  action_name: string;
+}
+
 export function useRoles() {
   const [loading, setLoading] = useState(false);
   
@@ -72,11 +85,11 @@ export function useRoles() {
       
       try {
         // Tentativa de usar a função RPC
-        const response = await supabase.rpc('has_permission', { 
+        const response = await supabase.rpc<boolean>('has_permission', { 
           user_id: user.id, 
           resource_name: resource, 
           action_name: action 
-        });
+        } as HasPermissionParams);
         
         if (!response.error) {
           return response.data === true;
@@ -99,12 +112,11 @@ export function useRoles() {
       `;
       
       const { data: directPermissions, error: directError } = await supabase
-        .rpc('query_permissions', { 
+        .rpc<any>('query_permissions', { 
           roles_array: roles, 
           resource_name: resource, 
           action_name: action 
-        })
-        .single();
+        } as QueryPermissionsParams);
       
       if (directError) {
         // Se a função RPC não existir, tentamos outra abordagem mais simples
