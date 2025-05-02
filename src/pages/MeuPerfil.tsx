@@ -50,11 +50,13 @@ export default function MeuPerfil() {
         if (error) throw error;
         
         if (data) {
-          setNome(data.nome || "");
+          // Cast data to UserProfile to ensure TypeScript recognizes all properties
+          const profileData = data as UserProfile;
+          setNome(profileData.nome || "");
           setEmail(user.email || "");
-          setTelefone(data.telefone || "");
-          setEmpresa(data.empresa || "");
-          setCreci(data.creci || "");
+          setTelefone(profileData.telefone || "");
+          setEmpresa(profileData.empresa || "");
+          setCreci(profileData.creci || "");
         }
         
         // Verificar se tem avatar

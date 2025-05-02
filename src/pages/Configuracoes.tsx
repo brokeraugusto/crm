@@ -26,13 +26,17 @@ interface UserWithRoles {
   roles: string[];
 }
 
-// Define a type for the user data from the users table
+// Define a complete type for the user data from the users table
 interface UserData {
   id: string;
   nome?: string | null;
   email?: string | null;
   telefone?: string | null;
   avatar_url?: string | null;
+  empresa?: string | null;
+  creci?: string | null;
+  created_at: string;
+  updated_at: string;
   [key: string]: any; // Allow other properties that might exist
 }
 
