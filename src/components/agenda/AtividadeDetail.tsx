@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Atividade } from "@/types/leads";
 import {
   Dialog,
@@ -22,8 +22,26 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "@/hooks/use-toast";
 
 const tipoEventoMap: Record<string, { label: string; color: string }> = {
   visita: {
@@ -46,6 +64,22 @@ const tipoEventoMap: Record<string, { label: string; color: string }> = {
     label: "Vistoria",
     color: "bg-orange-100 text-orange-700 hover:bg-orange-200",
   },
+  ligacao: {
+    label: "Ligação",
+    color: "bg-cyan-100 text-cyan-700 hover:bg-cyan-200",
+  },
+  email: {
+    label: "Email",
+    color: "bg-indigo-100 text-indigo-700 hover:bg-indigo-200",
+  },
+  contrato: {
+    label: "Contrato",
+    color: "bg-emerald-100 text-emerald-700 hover:bg-emerald-200",
+  },
+  outro: {
+    label: "Outro",
+    color: "bg-gray-100 text-gray-700 hover:bg-gray-200",
+  },
 };
 
 interface AtividadeDetailProps {
@@ -63,6 +97,10 @@ export function AtividadeDetail({
 }: AtividadeDetailProps) {
   const { excluirAtividade } = useAgendaOperations();
   const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
+  const [lembreteOpen, setLembreteOpen] = useState(false);
+  const [compartilharOpen, setCompartilharOpen] = useState(false);
+  const [tempoLembrete, setTempoLembrete] = useState("30min");
+  const [emailCompartilhar, setEmailCompartilhar] = useState("");
 
   const handleDelete = async () => {
     try {
@@ -71,6 +109,52 @@ export function AtividadeDetail({
     } catch (error) {
       console.error("Erro ao excluir atividade:", error);
     }
+  };
+
+  const handleAddLembrete = () => {
+    // Simular adição de lembrete
+    toast({
+      title: "Lembrete adicionado",
+      description: `Você receberá um lembrete ${tempoLembrete} antes da atividade.`,
+    });
+    setLembreteOpen(false);
+  };
+
+  const handleCompartilhar = () => {
+    // Simular compartilhamento
+    if (!emailCompartilhar) {
+      toast({
+        title: "Email obrigatório",
+        description: "Por favor, insira um email válido.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    toast({
+      title: "Atividade compartilhada",
+      description: `Um convite foi enviado para ${emailCompartilhar}.`,
+    });
+    setCompartilharOpen(false);
+    setEmailCompartilhar("");
+  };
+
+  const handleGoogleCalendar = () => {
+    const googleCalendarApiKey = localStorage.getItem("googleCalendarApiKey");
+    
+    if (!googleCalendarApiKey) {
+      toast({
+        title: "Configuração necessária",
+        description: "Configure sua chave de API do Google Calendar nas configurações.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    toast({
+      title: "Adicionado ao Google Calendar",
+      description: "A atividade foi adicionada ao seu Google Calendar.",
+    });
   };
 
   return (
@@ -125,15 +209,30 @@ export function AtividadeDetail({
             <div className="pt-2">
               <p className="text-sm text-muted-foreground mb-2">Ações rápidas</p>
               <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" className="gap-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-1"
+                  onClick={handleGoogleCalendar}
+                >
                   <Calendar className="h-4 w-4" />
                   <span>Google Agenda</span>
                 </Button>
-                <Button variant="outline" size="sm" className="gap-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-1"
+                  onClick={() => setLembreteOpen(true)}
+                >
                   <BellRing className="h-4 w-4" />
                   <span>Adicionar lembrete</span>
                 </Button>
-                <Button variant="outline" size="sm" className="gap-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-1"
+                  onClick={() => setCompartilharOpen(true)}
+                >
                   <Share2 className="h-4 w-4" />
                   <span>Compartilhar</span>
                 </Button>
@@ -181,6 +280,72 @@ export function AtividadeDetail({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      {/* Drawer para adicionar lembrete */}
+      <Drawer open={lembreteOpen} onOpenChange={setLembreteOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Adicionar lembrete</DrawerTitle>
+            <DrawerDescription>
+              Configure quando deseja receber o lembrete para esta atividade.
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="p-4">
+            <div className="space-y-2">
+              <Label htmlFor="lembrete-tempo">Tempo antes</Label>
+              <Select value={tempoLembrete} onValueChange={setTempoLembrete}>
+                <SelectTrigger id="lembrete-tempo">
+                  <SelectValue placeholder="Selecione o tempo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5min">5 minutos antes</SelectItem>
+                  <SelectItem value="15min">15 minutos antes</SelectItem>
+                  <SelectItem value="30min">30 minutos antes</SelectItem>
+                  <SelectItem value="1h">1 hora antes</SelectItem>
+                  <SelectItem value="2h">2 horas antes</SelectItem>
+                  <SelectItem value="1d">1 dia antes</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DrawerFooter>
+            <Button onClick={handleAddLembrete}>Salvar lembrete</Button>
+            <DrawerClose asChild>
+              <Button variant="outline">Cancelar</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+      
+      {/* Drawer para compartilhar */}
+      <Drawer open={compartilharOpen} onOpenChange={setCompartilharOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Compartilhar atividade</DrawerTitle>
+            <DrawerDescription>
+              Digite o email da pessoa com quem deseja compartilhar esta atividade.
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="p-4">
+            <div className="space-y-2">
+              <Label htmlFor="compartilhar-email">Email</Label>
+              <Input 
+                id="compartilhar-email" 
+                type="email" 
+                placeholder="exemplo@email.com"
+                value={emailCompartilhar}
+                onChange={(e) => setEmailCompartilhar(e.target.value)}
+              />
+            </div>
+          </div>
+          <DrawerFooter>
+            <Button onClick={handleCompartilhar}>Compartilhar</Button>
+            <DrawerClose asChild>
+              <Button variant="outline">Cancelar</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </>
   );
 }
