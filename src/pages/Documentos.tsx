@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -116,6 +117,28 @@ const tiposDocumentos: TipoDocumento[] = [
   "Compromisso de Compra e Venda",
 ];
 
+// Função para obter URL do webhook com base no tipo de documento
+const getWebhookUrl = (tipo: TipoDocumento) => {
+  const baseUrl = "https://n8n.baita.cloud/form/";
+  
+  switch(tipo) {
+    case "Autorização de Venda (PF)":
+      return `${baseUrl}autorizacaopf`;
+    case "Autorização de Venda (PJ)":
+      return `${baseUrl}autorizacaopj`;
+    case "Autorização de Intermediação Locatícia":
+      return `${baseUrl}intermediacaolocaticia`;
+    case "Contrato de Representação Exclusiva":
+      return `${baseUrl}contratoderepresentacao`;
+    case "Proposta de Compra":
+      return `${baseUrl}proposta`;
+    case "Compromisso de Compra e Venda":
+      return `${baseUrl}ccv`;
+    default:
+      return "";
+  }
+};
+
 // Ícones para formatos de arquivo
 const formatIcons: Record<string, JSX.Element> = {
   pdf: <File className="h-6 w-6 text-red-500" />,
@@ -137,8 +160,19 @@ export default function Documentos() {
     : documentosData.filter(doc => doc.tipo === "documento");
 
   const handleDocumentoSelect = (tipo: TipoDocumento) => {
-    setDocumentoSelecionado(tipo);
-    setDialogOpen(true);
+    // Opção 1: Abrir diretamente o formulário externo
+    const webhookUrl = getWebhookUrl(tipo);
+    
+    if (webhookUrl) {
+      window.open(webhookUrl, '_blank');
+      toast.success(`Formulário para ${tipo} aberto em nova janela`, {
+        description: "Preencha o formulário externo para gerar o documento."
+      });
+    } else {
+      // Opção 2: Abrir o diálogo interno se não houver webhook configurado
+      setDocumentoSelecionado(tipo);
+      setDialogOpen(true);
+    }
   };
 
   return (
@@ -377,7 +411,10 @@ export default function Documentos() {
               {documentoSelecionado || "Gerar Documento"}
             </DialogTitle>
             <DialogDescription>
-              Preencha os dados para gerar o documento automaticamente.
+              {documentoSelecionado 
+                ? "O formulário será aberto em uma nova janela" 
+                : "Selecione o tipo de documento para gerar"
+              }
             </DialogDescription>
           </DialogHeader>
           {documentoSelecionado ? (
