@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -85,13 +84,13 @@ export function useRoles() {
       
       try {
         // Tentativa de usar a função RPC
-        const response = await supabase.rpc(
-          'has_permission' as string, 
+        const response = await supabase.rpc<boolean>(
+          'has_permission', 
           { 
             user_id: user.id, 
             resource_name: resource, 
             action_name: action 
-          } as any
+          }
         );
         
         if (!response.error) {
@@ -114,15 +113,14 @@ export function useRoles() {
         AND action = $3
       `;
       
-      const { data: directPermissions, error: directError } = await supabase
-        .rpc(
-          'query_permissions' as string, 
-          { 
-            roles_array: roles, 
-            resource_name: resource, 
-            action_name: action 
-          } as any
-        );
+      const { data: directPermissions, error: directError } = await supabase.rpc<boolean>(
+        'query_permissions', 
+        { 
+          roles_array: roles, 
+          resource_name: resource, 
+          action_name: action 
+        }
+      );
       
       if (directError) {
         // Se a função RPC não existir, tentamos outra abordagem mais simples
