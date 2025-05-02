@@ -175,7 +175,7 @@ export function AtividadeForm({ leadId, defaultValues, onSubmit, isLoading }: At
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
+                  <SelectItem value="none">Nenhum</SelectItem>
                   {imoveis.map((imovel) => (
                     <SelectItem key={imovel.id} value={imovel.id}>
                       {imovel.titulo}
