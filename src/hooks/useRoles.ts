@@ -86,7 +86,7 @@ export function useRoles() {
       try {
         // Tentativa de usar a função RPC
         const { data, error } = await supabase.rpc(
-          'has_permission',
+          'has_permission' as unknown as keyof typeof supabase.rpc,
           { 
             user_id: user.id, 
             resource_name: resource, 
@@ -115,7 +115,7 @@ export function useRoles() {
       `;
       
       const { data: directPermissions, error: directError } = await supabase.rpc(
-        'query_permissions',
+        'query_permissions' as unknown as keyof typeof supabase.rpc,
         { 
           roles_array: roles, 
           resource_name: resource, 
