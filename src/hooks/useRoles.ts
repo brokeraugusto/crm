@@ -12,6 +12,14 @@ export interface RolePermission {
   role: UserRole;
 }
 
+// Interface for user_roles table that's not yet in the types
+interface UserRoleRecord {
+  id: string;
+  user_id: string;
+  role: UserRole;
+  created_at?: string;
+}
+
 export function useRoles() {
   const [loading, setLoading] = useState(false);
   
@@ -31,7 +39,7 @@ export function useRoles() {
       const { data: userRoles } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id) as { data: UserRoleRecord[] | null };
         
       if (!userRoles || userRoles.length === 0) {
         return false;
@@ -51,7 +59,7 @@ export function useRoles() {
         .select('*')
         .in('role', roles)
         .eq('resource', resource)
-        .eq('action', action);
+        .eq('action', action) as { data: RolePermission[] | null };
       
       return permissions && permissions.length > 0;
     } catch (error) {
@@ -84,7 +92,7 @@ export function useRoles() {
       const { data: userRoles } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id) as { data: UserRoleRecord[] | null };
       
       return {
         ...user,
@@ -106,7 +114,7 @@ export function useRoles() {
       
       const { data, error } = await supabase
         .from('user_roles')
-        .insert({ user_id: userId, role });
+        .insert({ user_id: userId, role }) as any;
         
       if (error) {
         toast.error(`Erro ao atribuir permissão: ${error.message}`);
@@ -133,7 +141,7 @@ export function useRoles() {
         .from('user_roles')
         .delete()
         .eq('user_id', userId)
-        .eq('role', role);
+        .eq('role', role) as any;
         
       if (error) {
         toast.error(`Erro ao remover permissão: ${error.message}`);

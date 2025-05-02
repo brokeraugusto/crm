@@ -20,6 +20,20 @@ import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 
+// Interface for our user_api_keys table that's not yet in the types
+interface ApiKeys {
+  id: string;
+  user_id: string;
+  drive_api_key: string | null;
+  drive_client_id: string | null;
+  drive_client_secret: string | null;
+  calendar_api_key: string | null;
+  calendar_client_id: string | null;
+  calendar_client_secret: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
 const googleApiSchema = z.object({
   driveApiKey: z.string().min(1, "API Key do Google Drive é obrigatória"),
   driveClientId: z.string().min(1, "Client ID do Google Drive é obrigatório"),
@@ -58,12 +72,12 @@ export function GoogleIntegrationForm() {
         
         setUserId(user.id);
         
-        // Buscar configurações existentes
+        // Buscar configurações existentes usando 'as any' to bypass TypeScript errors
         const { data, error } = await supabase
           .from('user_api_keys')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .single() as { data: ApiKeys | null, error: any };
           
         if (error) {
           console.log("Configurações não encontradas ou novo usuário");
@@ -113,7 +127,7 @@ export function GoogleIntegrationForm() {
           calendar_client_id: values.calendarClientId,
           calendar_client_secret: values.calendarClientSecret,
           updated_at: new Date().toISOString()
-        });
+        } as ApiKeys) as any;
         
       if (error) {
         throw error;

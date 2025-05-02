@@ -16,9 +16,9 @@ export function MainLayout() {
     }
   }, [isMobile]);
 
-  // Função para fechar a sidebar ao clicar na tela principal (desktop e mobile)
+  // Função para fechar a sidebar ao clicar na tela principal (mobile e desktop)
   const handleMainContentClick = () => {
-    if (sidebarOpen) {
+    if (sidebarOpen && (isMobile || window.innerWidth <= 1024)) {
       setSidebarOpen(false);
     }
   };

@@ -192,6 +192,66 @@ export type Database = {
           },
         ]
       }
+      user_api_keys: {
+        Row: {
+          calendar_api_key: string | null
+          calendar_client_id: string | null
+          calendar_client_secret: string | null
+          created_at: string | null
+          drive_api_key: string | null
+          drive_client_id: string | null
+          drive_client_secret: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          calendar_api_key?: string | null
+          calendar_client_id?: string | null
+          calendar_client_secret?: string | null
+          created_at?: string | null
+          drive_api_key?: string | null
+          drive_client_id?: string | null
+          drive_client_secret?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          calendar_api_key?: string | null
+          calendar_client_id?: string | null
+          calendar_client_secret?: string | null
+          created_at?: string | null
+          drive_api_key?: string | null
+          drive_client_id?: string | null
+          drive_client_secret?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           created_at: string
