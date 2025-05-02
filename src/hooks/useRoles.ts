@@ -20,6 +20,18 @@ interface UserRoleRecord {
   created_at?: string;
 }
 
+// Interface for profiles table
+interface UserProfile {
+  id: string;
+  nome: string;
+  email: string;
+  avatar_url?: string;
+  empresa?: string;
+  telefone?: string;
+  criado_em?: string;
+  atualizado_em?: string;
+}
+
 export function useRoles() {
   const [loading, setLoading] = useState(false);
   
@@ -36,10 +48,15 @@ export function useRoles() {
       }
       
       // Obter as roles do usuário
-      const { data: userRoles } = await supabase
+      const { data: userRoles, error: userRolesError } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', user.id) as { data: UserRoleRecord[] | null };
+        .eq('user_id', user.id);
+        
+      if (userRolesError) {
+        console.error("Erro ao buscar roles do usuário:", userRolesError);
+        return false;
+      }
         
       if (!userRoles || userRoles.length === 0) {
         return false;
@@ -53,15 +70,32 @@ export function useRoles() {
         return true;
       }
       
-      // Verificar permissões para outras roles
-      const { data: permissions } = await supabase
-        .from('role_permissions')
-        .select('*')
-        .in('role', roles)
-        .eq('resource', resource)
-        .eq('action', action) as { data: RolePermission[] | null };
+      // Verificar permissões para outras roles - usando uma abordagem diferente para evitar erros de tipo
+      const { data: permissions, error: permissionsError } = await supabase
+        .rpc('has_permission', { 
+          user_id: user.id, 
+          resource_name: resource, 
+          action_name: action 
+        });
       
-      return permissions && permissions.length > 0;
+      if (permissionsError) {
+        // Fallback para query direta se a função RPC não existir
+        const { data: directPermissions, error: directError } = await supabase
+          .from('role_permissions')
+          .select('*')
+          .in('role', roles)
+          .eq('resource', resource)
+          .eq('action', action);
+          
+        if (directError) {
+          console.error("Erro ao verificar permissões:", directError);
+          return false;
+        }
+        
+        return directPermissions && directPermissions.length > 0;
+      }
+      
+      return permissions === true;
     } catch (error) {
       console.error("Erro ao verificar permissões:", error);
       return false;
@@ -82,21 +116,29 @@ export function useRoles() {
       }
       
       // Obter perfil do usuário
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
       
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error("Erro ao obter perfil:", profileError);
+      }
+      
       // Obter roles do usuário
-      const { data: userRoles } = await supabase
+      const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', user.id) as { data: UserRoleRecord[] | null };
+        .eq('user_id', user.id);
+      
+      if (rolesError) {
+        console.error("Erro ao obter roles:", rolesError);
+      }
       
       return {
         ...user,
-        profile,
+        profile: profile || null,
         roles: userRoles?.map(r => r.role) || []
       };
     } catch (error) {
@@ -114,7 +156,7 @@ export function useRoles() {
       
       const { data, error } = await supabase
         .from('user_roles')
-        .insert({ user_id: userId, role }) as any;
+        .insert({ user_id: userId, role });
         
       if (error) {
         toast.error(`Erro ao atribuir permissão: ${error.message}`);
@@ -123,7 +165,7 @@ export function useRoles() {
       
       toast.success(`Role ${role} atribuída com sucesso`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao atribuir role:", error);
       toast.error("Erro ao atribuir permissão");
       return false;
@@ -141,7 +183,7 @@ export function useRoles() {
         .from('user_roles')
         .delete()
         .eq('user_id', userId)
-        .eq('role', role) as any;
+        .eq('role', role);
         
       if (error) {
         toast.error(`Erro ao remover permissão: ${error.message}`);
@@ -150,7 +192,7 @@ export function useRoles() {
       
       toast.success(`Role ${role} removida com sucesso`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao remover role:", error);
       toast.error("Erro ao remover permissão");
       return false;
