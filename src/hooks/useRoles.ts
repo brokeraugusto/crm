@@ -70,32 +70,47 @@ export function useRoles() {
         return true;
       }
       
-      // Verificar permissões para outras roles - usando uma abordagem diferente para evitar erros de tipo
-      const { data: permissions, error: permissionsError } = await supabase
-        .rpc('has_permission', { 
-          user_id: user.id, 
-          resource_name: resource, 
-          action_name: action 
-        });
+      try {
+        // Tentativa de usar a função RPC
+        const { data: permissions, error: permissionsError } = await supabase
+          .rpc('has_permission', { 
+            user_id: user.id, 
+            resource_name: resource, 
+            action_name: action 
+          });
+        
+        if (!permissionsError) {
+          return permissions === true;
+        }
+        
+        // Se a função RPC falhar, usamos uma query direta
+        console.log("Usando método alternativo para verificar permissões");
+      } catch (rpcError) {
+        console.error("Erro ao tentar função RPC:", rpcError);
+        // Continue para a abordagem alternativa
+      }
       
-      if (permissionsError) {
-        // Fallback para query direta se a função RPC não existir
-        const { data: directPermissions, error: directError } = await supabase
-          .from('role_permissions')
+      // Abordagem alternativa: verificar permissões diretamente
+      // Definindo o tipo aqui para evitar erros
+      type RolePermissionResult = { id: string; role: string; resource: string; action: string; }
+      
+      // Usando o método de query genérica para evitar erros de tipo
+      const { data: directPermissions, error: directError } = 
+        await supabase.from('role_permissions')
           .select('*')
           .in('role', roles)
           .eq('resource', resource)
-          .eq('action', action);
+          .eq('action', action) as unknown as { 
+            data: RolePermissionResult[] | null, 
+            error: any 
+          };
           
-        if (directError) {
-          console.error("Erro ao verificar permissões:", directError);
-          return false;
-        }
-        
-        return directPermissions && directPermissions.length > 0;
+      if (directError) {
+        console.error("Erro ao verificar permissões:", directError);
+        return false;
       }
       
-      return permissions === true;
+      return directPermissions && directPermissions.length > 0;
     } catch (error) {
       console.error("Erro ao verificar permissões:", error);
       return false;
@@ -115,12 +130,15 @@ export function useRoles() {
         return null;
       }
       
-      // Obter perfil do usuário
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+      // Obter perfil do usuário usando método genérico para evitar erros de tipo
+      const { data: profile, error: profileError } = 
+        await supabase.from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single() as unknown as {
+            data: UserProfile | null,
+            error: any
+          };
       
       if (profileError && profileError.code !== 'PGRST116') {
         console.error("Erro ao obter perfil:", profileError);
