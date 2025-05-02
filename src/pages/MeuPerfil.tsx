@@ -11,6 +11,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2, Upload, User, Mail, Phone, Building } from "lucide-react";
 
+// Define a proper type for the user data from the database
+interface UserProfile {
+  id: string;
+  nome?: string | null;
+  email?: string | null;
+  telefone?: string | null;
+  empresa?: string | null;
+  creci?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export default function MeuPerfil() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -76,7 +88,7 @@ export default function MeuPerfil() {
           telefone,
           empresa,
           creci,
-          updated_at: new Date(),
+          updated_at: new Date().toISOString(), // Convert Date to string
         })
         .eq("id", user.id);
       

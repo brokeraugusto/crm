@@ -26,6 +26,16 @@ interface UserWithRoles {
   roles: string[];
 }
 
+// Define a type for the user data from the users table
+interface UserData {
+  id: string;
+  nome?: string | null;
+  email?: string | null;
+  telefone?: string | null;
+  avatar_url?: string | null;
+  [key: string]: any; // Allow other properties that might exist
+}
+
 export default function Configuracoes() {
   const { theme, setTheme } = useTheme();
   const [googleDriveApiKey, setGoogleDriveApiKey] = useState(
@@ -81,7 +91,7 @@ export default function Configuracoes() {
       
       // Mapear as roles para cada usuário
       const usersWithRoles: UserWithRoles[] = authUsers.users.map(authUser => {
-        const userData = usersData?.find(u => u.id === authUser.id) || {};
+        const userData = usersData?.find(u => u.id === authUser.id) || {} as UserData;
         const userRoles = rolesData?.filter(r => r.user_id === authUser.id).map(r => r.role) || [];
         
         return {
