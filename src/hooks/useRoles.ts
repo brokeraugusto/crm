@@ -196,6 +196,55 @@ export function useRoles() {
     }
   };
   
+  // Obter todos os usuários com suas roles
+  const getAllUsersWithRoles = async () => {
+    try {
+      setLoading(true);
+      
+      // Obter todos os usuários
+      const { data: users, error: usersError } = await supabase
+        .from('users')
+        .select('*');
+        
+      if (usersError) {
+        throw usersError;
+      }
+      
+      if (!users || users.length === 0) {
+        return [];
+      }
+      
+      // Obter roles para todos os usuários
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('*');
+        
+      if (rolesError) {
+        throw rolesError;
+      }
+      
+      // Mapear roles para cada usuário
+      const usersWithRoles = users.map(user => {
+        const roles = userRoles
+          ?.filter(ur => ur.user_id === user.id)
+          .map(ur => ur.role) || [];
+          
+        return {
+          ...user,
+          roles
+        };
+      });
+      
+      return usersWithRoles;
+    } catch (error) {
+      console.error("Erro ao obter todos os usuários:", error);
+      toast.error("Erro ao obter lista de usuários");
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   // Atribuir role para um usuário
   const assignRole = async (userId: string, role: UserRole) => {
     try {
@@ -252,6 +301,7 @@ export function useRoles() {
     loading,
     hasPermission,
     getUserWithRoles,
+    getAllUsersWithRoles,
     assignRole,
     removeRole
   };

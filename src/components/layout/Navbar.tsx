@@ -15,6 +15,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 type NavbarProps = {
   sidebarOpen: boolean;
@@ -102,14 +103,18 @@ export function Navbar({ sidebarOpen, setSidebarOpen }: NavbarProps) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  Meu Perfil
+                <DropdownMenuItem asChild>
+                  <Link to="/meu-perfil" className="cursor-pointer">
+                    Meu Perfil
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  Configurações
+                <DropdownMenuItem asChild>
+                  <Link to="/configuracoes" className="cursor-pointer">
+                    Configurações
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
                   Sair
                 </DropdownMenuItem>
               </DropdownMenuContent>

@@ -92,6 +92,10 @@
     @apply border-border;
   }
 
+  html, body {
+    @apply h-full overflow-hidden;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
@@ -99,6 +103,21 @@
   
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading font-medium;
+  }
+
+  /* Corrigir componentes que ultrapassam a largura da tela */
+  .overflow-container {
+    @apply max-w-full overflow-x-auto;
+  }
+
+  /* Melhorar contraste em elementos no tema escuro */
+  .dark .hover-item {
+    @apply hover:bg-slate-700 hover:text-white;
+  }
+  
+  /* Ajustes para containers de formulários */
+  .form-container {
+    @apply max-h-[calc(100vh-10rem)] overflow-y-auto pb-6;
   }
 }
 
@@ -110,5 +129,10 @@
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  /* Melhoria para visibilidade em tema escuro */
+  .dark-visible {
+    @apply dark:text-slate-100 dark:hover:text-white;
   }
 }
