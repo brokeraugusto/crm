@@ -17,6 +17,7 @@ import Documentos from "./pages/Documentos";
 import BaseConhecimento from "./pages/BaseConhecimento";
 import Configuracoes from "./pages/Configuracoes";
 import MeuPerfil from "./pages/MeuPerfil";
+import Usuarios from "./pages/Usuarios";
 import NotFound from "./pages/NotFound";
 import { useAuth } from "./components/auth/AuthProvider";
 
@@ -56,6 +57,7 @@ const App = () => (
                 <Route path="/base-conhecimento" element={<BaseConhecimento />} />
                 <Route path="/configuracoes" element={<Configuracoes />} />
                 <Route path="/meu-perfil" element={<MeuPerfil />} />
+                <Route path="/usuarios" element={<Usuarios />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

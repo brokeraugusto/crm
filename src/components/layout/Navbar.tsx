@@ -1,7 +1,8 @@
 
 import { Button } from "@/components/ui/button";
-import { Menu, Bell, User, Sun, Moon } from "lucide-react";
+import { Menu, Bell, Sun, Moon, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTheme } from "@/components/theme/ThemeProvider";
+import { useSidebar } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,19 +15,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
-type NavbarProps = {
-  sidebarOpen: boolean;
-  setSidebarOpen: (open: boolean) => void;
-};
-
-export function Navbar({ sidebarOpen, setSidebarOpen }: NavbarProps) {
+export function Navbar() {
   const { user } = useAuth();
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { toggleSidebar, open, isMobile } = useSidebar();
 
   const handleLogout = async () => {
     try {
@@ -52,16 +48,28 @@ export function Navbar({ sidebarOpen, setSidebarOpen }: NavbarProps) {
     <header className="sticky top-0 z-30 bg-background border-b">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <div className="flex">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="shrink-0"
-            >
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Menu</span>
-            </Button>
+          <div className="flex items-center">
+            {isMobile ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => toggleSidebar()}
+                className="shrink-0"
+              >
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Menu</span>
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => toggleSidebar()}
+                className="shrink-0"
+              >
+                {open ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                <span className="sr-only">Recolher menu</span>
+              </Button>
+            )}
           </div>
           <div className="flex items-center gap-4">
             <Button
@@ -114,7 +122,7 @@ export function Navbar({ sidebarOpen, setSidebarOpen }: NavbarProps) {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
+                <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer hover:text-red-500">
                   Sair
                 </DropdownMenuItem>
               </DropdownMenuContent>

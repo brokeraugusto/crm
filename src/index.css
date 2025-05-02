@@ -93,7 +93,7 @@
   }
 
   html, body {
-    @apply h-full overflow-hidden;
+    @apply h-full;
   }
 
   body {
@@ -117,7 +117,7 @@
   
   /* Ajustes para containers de formulários */
   .form-container {
-    @apply max-h-[calc(100vh-10rem)] overflow-y-auto pb-6;
+    @apply max-h-full overflow-y-auto pb-6;
   }
 }
 
@@ -134,5 +134,33 @@
   /* Melhoria para visibilidade em tema escuro */
   .dark-visible {
     @apply dark:text-slate-100 dark:hover:text-white;
+  }
+  
+  /* Corrigir problema de hover no dark theme */
+  .dark button:hover, 
+  .dark a:hover,
+  .dark .hover-element:hover {
+    @apply text-white bg-gray-700;
+  }
+  
+  /* Melhorar contraste de text em menus dropdown no tema escuro */
+  .dark [data-radix-popper-content-wrapper] * {
+    @apply text-gray-200;
+  }
+  
+  /* Corrigir problema de overflow em formulários grandes */
+  .form-wrapper {
+    @apply max-w-full overflow-x-hidden;
+  }
+  
+  /* Adicionar suporte para telas maiores */
+  @media (min-width: 1536px) {
+    .container {
+      @apply max-w-7xl;
+    }
+    
+    .form-wrapper {
+      @apply max-w-5xl mx-auto;
+    }
   }
 }
