@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Atividade } from "@/types/leads";
 import {
@@ -42,6 +41,7 @@ import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
+import { Label } from "@/components/ui/label";
 
 const tipoEventoMap: Record<string, { label: string; color: string }> = {
   visita: {
