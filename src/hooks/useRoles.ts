@@ -137,7 +137,7 @@ export function useRoles() {
       
       if (directError) {
         // Se a função RPC não existir, tentamos outra abordagem mais simples
-        // Esta é uma solução temporária, idealmente devemos criar uma função RPC específica
+        // Esta é uma soluç��o temporária, idealmente devemos criar uma função RPC específica
         console.error("Erro ao verificar permissões:", directError);
         
         // Verificamos apenas com base no papel do usuário
@@ -240,12 +240,15 @@ export function useRoles() {
         const roles = userRoles
           ?.filter(ur => ur.user_id === user.id)
           .map(ur => ur.role as UserRole) || [];
-          
-        return {
+        
+        // Explicit type casting to include avatar_url if it exists
+        const userWithRoles: UserWithRoles = {
           ...user,
           roles,
-          avatar_url: user.avatar_url || undefined
-        } as UserWithRoles;
+          avatar_url: user.avatar_url as string | undefined
+        };
+          
+        return userWithRoles;
       });
       
       return usersWithRoles;
