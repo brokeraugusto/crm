@@ -57,7 +57,7 @@ export default function Usuarios() {
           avatar_url: u.avatar_url || "",
           roles: u.roles || [],
           created_at: u.created_at
-        }));
+        })) as UserData[];
         
         setUsers(formattedUsers);
       } catch (error) {
