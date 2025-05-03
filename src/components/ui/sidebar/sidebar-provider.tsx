@@ -69,11 +69,11 @@ export const SidebarProvider = React.forwardRef<
           hamburgerBtn && !hamburgerBtn.contains(event.target as Node)) {
         if (!isMobile && open) {
           setOpen(false);
-        } else if (iMobile && openMobile) {
+        } else if (isMobile && openMobile) {
           setOpenMobile(false);
         }
       }
-    }, [iMobile, open, openMobile, setOpen, setOpenMobile]);
+    }, [isMobile, open, openMobile, setOpen, setOpenMobile]);
 
     // Adiciona listener para cliques fora do sidebar
     React.useEffect(() => {
@@ -110,7 +110,7 @@ export const SidebarProvider = React.forwardRef<
         setOpenMobile,
         toggleSidebar,
       }),
-      [state, open, setOpen, iMobile, openMobile, setOpenMobile, toggleSidebar]
+      [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
     );
 
     return (
