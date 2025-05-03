@@ -2,6 +2,7 @@
 import { NavLink } from "react-router-dom";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useTheme } from "@/components/theme/ThemeProvider";
+import { useAdmin } from "@/hooks/useAdmin";
 import {
   Home,
   Users,
@@ -12,15 +13,18 @@ import {
   Settings,
   LogOut,
   UserCog,
+  ChevronLeft
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function Sidebar() {
   const { open, isMobile, openMobile, toggleSidebar } = useSidebar();
   const { theme } = useTheme();
+  const { isMasterAdmin } = useAdmin();
   const isDark = theme === 'dark';
   
   const handleLinkClick = () => {
-    if (isMobile) {
+    if (isMobile && openMobile) {
       toggleSidebar();
     }
   };
@@ -33,6 +37,8 @@ export function Sidebar() {
     ? "text-gray-300 hover:bg-gray-700 hover:text-white" 
     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"}`;
 
+  const sidebarWidth = open || (isMobile && openMobile) ? "w-64" : "w-20";
+  
   return (
     <>
       {/* Mobile overlay */}
@@ -44,13 +50,13 @@ export function Sidebar() {
       )}
       
       {/* Sidebar */}
-      <div
+      <aside
         id="sidebar-main"
-        className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out ${
-          isMobile ? (openMobile ? "translate-x-0" : "-translate-x-full") : (open ? "translate-x-0" : "-translate-x-full")
-        } ${isMobile ? "shadow-lg" : ""} ${
+        className={`fixed inset-y-0 left-0 z-50 transform transition-all duration-300 ease-in-out ${
+          isMobile ? (openMobile ? "translate-x-0" : "-translate-x-full") : "translate-x-0"
+        } ${
           isDark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"
-        } border-r md:translate-x-0 ${!open && !isMobile ? "md:w-20" : "md:w-64"}`}
+        } border-r md:block ${sidebarWidth} flex-shrink-0`}
       >
         {/* Sidebar header */}
         <div className={`flex items-center justify-between h-16 px-4 border-b ${
@@ -64,6 +70,19 @@ export function Sidebar() {
               <h1 className={`text-lg font-bold truncate ${isDark ? "text-white" : "text-gray-900"}`}>Casa Próxima</h1>
             )}
           </NavLink>
+          
+          {/* Desktop collapse button */}
+          {!isMobile && open && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleSidebar}
+              className="p-1 rounded-full"
+            >
+              <ChevronLeft className="h-5 w-5" />
+              <span className="sr-only">Recolher menu</span>
+            </Button>
+          )}
         </div>
         
         {/* Sidebar content */}
@@ -131,16 +150,18 @@ export function Sidebar() {
             </NavLink>
             
             {/* Seção Admin - visível apenas para o usuário master */}
-            <NavLink
-              to="/usuarios"
-              onClick={handleLinkClick}
-              className={({ isActive }) => 
-                `flex items-center px-3 py-2 rounded-md mb-1 mt-4 ${isActive ? activeClass : normalClass}`
-              }
-            >
-              <UserCog className="w-5 h-5 mr-3 flex-shrink-0" />
-              {(open || (isMobile && openMobile)) && <span>Administração</span>}
-            </NavLink>
+            {isMasterAdmin && (
+              <NavLink
+                to="/usuarios"
+                onClick={handleLinkClick}
+                className={({ isActive }) => 
+                  `flex items-center px-3 py-2 rounded-md mb-1 mt-4 ${isActive ? activeClass : normalClass}`
+                }
+              >
+                <UserCog className="w-5 h-5 mr-3 flex-shrink-0" />
+                {(open || (isMobile && openMobile)) && <span>Administração</span>}
+              </NavLink>
+            )}
           </nav>
           
           <div className={`px-3 py-4 border-t ${isDark ? "border-gray-800" : "border-gray-200"}`}>
@@ -164,7 +185,7 @@ export function Sidebar() {
             </button>
           </div>
         </div>
-      </div>
+      </aside>
     </>
   );
 }

@@ -55,7 +55,7 @@ export const SidebarProvider = React.forwardRef<
     const toggleSidebar = React.useCallback(() => {
       return isMobile
         ? setOpenMobile((open) => !open)
-        : setOpen((open) => !open)
+        : setOpen((open) => !open);
     }, [isMobile, setOpen, setOpenMobile]);
 
     // Handler para fechar o sidebar quando clicar fora
@@ -118,7 +118,7 @@ export const SidebarProvider = React.forwardRef<
             style={
               {
                 "--sidebar-width": "16rem",
-                "--sidebar-width-icon": "3rem",
+                "--sidebar-width-icon": "5rem",
                 ...style,
               } as React.CSSProperties
             }

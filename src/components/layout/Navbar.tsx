@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Menu, Bell, Sun, Moon, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTheme } from "@/components/theme/ThemeProvider";
@@ -52,7 +53,7 @@ export function Navbar() {
               id="hamburger-button"
               variant="ghost"
               size="icon"
-              onClick={() => toggleSidebar()}
+              onClick={toggleSidebar}
               className="shrink-0"
             >
               {isMobile ? (
