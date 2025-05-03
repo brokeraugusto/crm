@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -42,6 +43,18 @@ export interface UserWithRoles {
   created_at: string;
   updated_at: string;
   roles: UserRole[];
+}
+
+// Interface for the user object returned from the database
+interface UserRecord {
+  id: string;
+  nome: string | null;
+  email: string | null;
+  telefone: string | null;
+  created_at: string;
+  updated_at: string;
+  creci?: string | null;
+  avatar_url?: string; // Add this to match the database structure
 }
 
 // Types for RPC functions
@@ -237,15 +250,22 @@ export function useRoles() {
       
       // Mapear roles para cada usuário
       const usersWithRoles = users.map(user => {
+        const userRecord = user as UserRecord; // Cast to our interface that includes avatar_url
         const roles = userRoles
-          ?.filter(ur => ur.user_id === user.id)
+          ?.filter(ur => ur.user_id === userRecord.id)
           .map(ur => ur.role as UserRole) || [];
         
-        // Explicit type casting to include avatar_url if it exists
+        // Create a UserWithRoles object with all needed properties
         const userWithRoles: UserWithRoles = {
-          ...user,
-          roles,
-          avatar_url: user.avatar_url as string | undefined
+          id: userRecord.id,
+          email: userRecord.email,
+          nome: userRecord.nome,
+          telefone: userRecord.telefone,
+          avatar_url: userRecord.avatar_url,
+          creci: userRecord.creci,
+          created_at: userRecord.created_at,
+          updated_at: userRecord.updated_at,
+          roles
         };
           
         return userWithRoles;
