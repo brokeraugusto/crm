@@ -3,8 +3,13 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-// Remover esse hook e usar após a criação da tabela user_relationships
-// Este é um hook temporário que será substituído após a criação da tabela
+export interface UserRelationship {
+  id: string;
+  manager_id: string;
+  subordinate_id: string;
+  created_at: string;
+}
+
 export function useUserRelationships() {
   const [loading, setLoading] = useState(false);
   
@@ -12,9 +17,40 @@ export function useUserRelationships() {
   const assignUserToManager = async (managerId: string, subordinateId: string) => {
     try {
       setLoading(true);
-      // Temporariamente retornando sucesso até que a tabela seja criada
+      
+      // Verificar se a relação já existe
+      const { data: existingRelation, error: checkError } = await supabase
+        .from('user_relationships')
+        .select('*')
+        .eq('manager_id', managerId)
+        .eq('subordinate_id', subordinateId)
+        .maybeSingle();
+        
+      if (checkError) {
+        throw checkError;
+      }
+      
+      if (existingRelation) {
+        toast.info("Usuário já está associado a este gerente");
+        return existingRelation;
+      }
+      
+      // Criar nova relação
+      const { data, error } = await supabase
+        .from('user_relationships')
+        .insert({
+          manager_id: managerId,
+          subordinate_id: subordinateId
+        })
+        .select()
+        .single();
+        
+      if (error) {
+        throw error;
+      }
+      
       toast.success("Usuário associado com sucesso");
-      return { managerId, subordinateId };
+      return data;
     } catch (error: any) {
       console.error("Erro ao associar usuário:", error);
       toast.error(`Erro ao associar usuário: ${error.message}`);
@@ -28,7 +64,17 @@ export function useUserRelationships() {
   const removeUserFromManager = async (managerId: string, subordinateId: string) => {
     try {
       setLoading(true);
-      // Temporariamente retornando sucesso até que a tabela seja criada
+      
+      const { error } = await supabase
+        .from('user_relationships')
+        .delete()
+        .eq('manager_id', managerId)
+        .eq('subordinate_id', subordinateId);
+        
+      if (error) {
+        throw error;
+      }
+      
       toast.success("Associação removida com sucesso");
       return true;
     } catch (error: any) {
@@ -41,11 +87,20 @@ export function useUserRelationships() {
   };
   
   // Obter todos os subordinados de um gerente
-  const getManagerSubordinates = async (managerId: string) => {
+  const getManagerSubordinates = async (managerId: string): Promise<UserRelationship[]> => {
     try {
       setLoading(true);
-      // Temporariamente retornando uma lista vazia até que a tabela seja criada
-      return [];
+      
+      const { data, error } = await supabase
+        .from('user_relationships')
+        .select('*')
+        .eq('manager_id', managerId);
+        
+      if (error) {
+        throw error;
+      }
+      
+      return data || [];
     } catch (error: any) {
       console.error("Erro ao obter subordinados:", error);
       toast.error(`Erro ao obter subordinados: ${error.message}`);
@@ -56,11 +111,21 @@ export function useUserRelationships() {
   };
   
   // Obter gerente de um corretor/assistente
-  const getUserManager = async (userId: string) => {
+  const getUserManager = async (userId: string): Promise<UserRelationship | null> => {
     try {
       setLoading(true);
-      // Temporariamente retornando null até que a tabela seja criada
-      return null;
+      
+      const { data, error } = await supabase
+        .from('user_relationships')
+        .select('*')
+        .eq('subordinate_id', userId)
+        .maybeSingle();
+        
+      if (error) {
+        throw error;
+      }
+      
+      return data;
     } catch (error: any) {
       console.error("Erro ao obter gerente:", error);
       toast.error(`Erro ao obter gerente: ${error.message}`);
@@ -89,9 +154,17 @@ export function useUserRelationships() {
         return true; // Admin pode acessar dados de qualquer usuário
       }
       
-      // Sem a tabela user_relationships, vamos limitar o acesso
-      // Temporariamente, apenas usuários com mesmo ID ou admins podem acessar os dados
-      return false;
+      // Verificar se o usuário atual é gerente do usuário alvo
+      const { data: relationship, error: relationshipError } = await supabase
+        .from('user_relationships')
+        .select('*')
+        .eq('manager_id', currentUserId)
+        .eq('subordinate_id', targetUserId)
+        .maybeSingle();
+        
+      if (relationshipError) throw relationshipError;
+      
+      return !!relationship; // Retorna true se existe relacionamento, false caso contrário
     } catch (error: any) {
       console.error("Erro ao verificar acesso:", error);
       return false;
