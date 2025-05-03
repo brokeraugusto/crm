@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -20,7 +19,7 @@ interface UserRoleRecord {
   created_at?: string;
 }
 
-// Interface for profiles table
+// Interface for profiles table with avatar_url included
 interface UserProfile {
   id: string;
   nome: string;
@@ -30,6 +29,19 @@ interface UserProfile {
   telefone?: string;
   criado_em?: string;
   atualizado_em?: string;
+}
+
+// Define a consistent return type for user with roles
+export interface UserWithRoles {
+  id: string;
+  email: string | null;
+  nome: string | null;
+  telefone: string | null;
+  avatar_url?: string;
+  creci?: string | null;
+  created_at: string;
+  updated_at: string;
+  roles: UserRole[];
 }
 
 // Types for RPC functions
@@ -197,7 +209,7 @@ export function useRoles() {
   };
   
   // Obter todos os usuários com suas roles
-  const getAllUsersWithRoles = async () => {
+  const getAllUsersWithRoles = async (): Promise<UserWithRoles[]> => {
     try {
       setLoading(true);
       
@@ -227,12 +239,13 @@ export function useRoles() {
       const usersWithRoles = users.map(user => {
         const roles = userRoles
           ?.filter(ur => ur.user_id === user.id)
-          .map(ur => ur.role) || [];
+          .map(ur => ur.role as UserRole) || [];
           
         return {
           ...user,
-          roles
-        };
+          roles,
+          avatar_url: user.avatar_url || undefined
+        } as UserWithRoles;
       });
       
       return usersWithRoles;

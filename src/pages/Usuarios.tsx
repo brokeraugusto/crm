@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +21,19 @@ interface UserData {
   avatar_url?: string;
   roles: UserRole[];
   created_at?: string;
+}
+
+// Define a type for the data returned from getAllUsersWithRoles
+interface UserWithRole {
+  id: string;
+  email: string | null;
+  nome: string | null;
+  telefone: string | null;
+  avatar_url?: string;
+  roles: UserRole[];
+  created_at: string;
+  updated_at: string;
+  creci?: string | null;
 }
 
 export default function Usuarios() {
