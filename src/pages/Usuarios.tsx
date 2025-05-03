@@ -22,7 +22,9 @@ import {
   Check,
   Mail,
   UserX,
-  Pencil
+  Pencil,
+  Users,
+  Settings
 } from "lucide-react";
 import { 
   Dialog,
@@ -43,6 +45,8 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { useUserRelationships } from "@/hooks/useUserRelationships";
+import { EmailTemplateEditor, EmailTemplateData } from "@/components/ui/email-template-editor";
 
 interface UserData {
   id: string;
@@ -52,27 +56,9 @@ interface UserData {
   avatar_url?: string;
   roles: UserRole[];
   created_at?: string;
-}
-
-// Define a type for the data returned from getAllUsersWithRoles
-interface UserWithRole {
-  id: string;
-  email: string | null;
-  nome: string | null;
-  telefone: string | null;
-  avatar_url?: string;
-  roles: UserRole[];
-  created_at: string;
-  updated_at: string;
-  creci?: string | null;
-}
-
-// Interface para o formulário de novo usuário
-interface NewUserFormData {
-  nome: string;
-  email: string;
-  telefone: string;
-  roles: UserRole[];
+  managerId?: string;
+  managerName?: string;
+  subordinates?: Array<{id: string, nome: string, role: string}>;
 }
 
 export default function Usuarios() {
@@ -84,19 +70,43 @@ export default function Usuarios() {
   const [isUserFormOpen, setIsUserFormOpen] = useState(false);
   const [isInviteFormOpen, setIsInviteFormOpen] = useState(false);
   const [isEditUserFormOpen, setIsEditUserFormOpen] = useState(false);
+  const [isEmailTemplateOpen, setIsEmailTemplateOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState<UserData | null>(null);
+  const [isManagerAssignOpen, setIsManagerAssignOpen] = useState(false);
+  const [selectedSubordinate, setSelectedSubordinate] = useState<string | null>(null);
+  const [selectedManager, setSelectedManager] = useState<string | null>(null);
+  const [managers, setManagers] = useState<UserData[]>([]);
+  const [activeUserRolesToEdit, setActiveUserRolesToEdit] = useState<string | null>(null);
+  
+  // Email template state
+  const [emailTemplate, setEmailTemplate] = useState<EmailTemplateData>({
+    subject: "Convite para Casa Próxima",
+    body: `Olá,
+
+Você foi convidado para participar do sistema Casa Próxima.
+
+Clique no link abaixo para criar sua conta e começar a utilizar o sistema:
+[LINK_CONVITE]
+
+Se você tiver alguma dúvida, entre em contato com o administrador.
+
+Atenciosamente,
+Equipe Casa Próxima`
+  });
   
   // Form states
-  const [newUser, setNewUser] = useState<NewUserFormData>({
+  const [newUser, setNewUser] = useState({
     nome: "",
     email: "",
     telefone: "",
-    roles: []
+    roles: [] as UserRole[]
   });
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<UserRole>("corretor");
+  const [inviteManager, setInviteManager] = useState<string | null>(null);
 
   const { getAllUsersWithRoles, assignRole, removeRole } = useRoles();
+  const { assignUserToManager, removeUserFromManager, getUserManager } = useUserRelationships();
   const { user } = useAuth();
   const { isMasterAdmin } = useAdmin();
   const navigate = useNavigate();
@@ -121,17 +131,36 @@ export default function Usuarios() {
     try {
       const allUsers = await getAllUsersWithRoles();
       
-      const formattedUsers = allUsers.map(u => ({
-        id: u.id,
-        email: u.email || "",
-        nome: u.nome || "",
-        telefone: u.telefone || "",
-        avatar_url: u.avatar_url || "",
-        roles: u.roles || [],
-        created_at: u.created_at
-      })) as UserData[];
+      // Get managers (users with "gerente" role)
+      const managersList = allUsers.filter(user => 
+        user.roles.includes("gerente")
+      );
       
-      setUsers(formattedUsers);
+      setManagers(managersList.map(manager => ({
+        id: manager.id,
+        email: manager.email || "",
+        nome: manager.nome || "",
+        roles: manager.roles
+      })));
+      
+      // For each user, get their manager if they have one
+      const usersWithManagers = await Promise.all(allUsers.map(async (user) => {
+        if (user.roles.includes("corretor") || user.roles.includes("assistente")) {
+          const managerInfo = await getUserManager(user.id);
+          
+          if (managerInfo) {
+            return {
+              ...user,
+              managerId: managerInfo.manager_id,
+              managerName: managerInfo.users?.nome || "Unknown"
+            };
+          }
+        }
+        
+        return user;
+      }));
+      
+      setUsers(usersWithManagers);
     } catch (error) {
       console.error("Erro ao carregar usuários:", error);
       toast.error("Não foi possível carregar a lista de usuários. Tente novamente mais tarde.");
@@ -280,14 +309,26 @@ export default function Usuarios() {
     
     setLoadingAction("invite");
     try {
-      // Enviar convite por email
-      const { data, error } = await supabase.auth.admin.inviteUserByEmail(inviteEmail);
+      // Enviar convite por email com template personalizado
+      const { data, error } = await supabase.auth.admin.inviteUserByEmail(inviteEmail, {
+        data: {
+          role: inviteRole,
+          manager_id: inviteManager,
+          invite_subject: emailTemplate.subject,
+          invite_message: emailTemplate.body
+        }
+      });
       
       if (error) throw error;
       
       if (data.user) {
         // Atribuir role selecionada
         await assignRole(data.user.id, inviteRole);
+        
+        // Se selecionou um gerente, atribuir o usuário ao gerente
+        if (inviteManager && (inviteRole === 'corretor' || inviteRole === 'assistente')) {
+          await assignUserToManager(inviteManager, data.user.id);
+        }
         
         toast.success(`Convite enviado com sucesso para ${inviteEmail}`);
         
@@ -305,6 +346,7 @@ export default function Usuarios() {
         // Limpar formulário
         setInviteEmail("");
         setInviteRole("corretor");
+        setInviteManager(null);
         setIsInviteFormOpen(false);
       }
     } catch (error: any) {
@@ -356,6 +398,47 @@ export default function Usuarios() {
       setUserToEdit(null);
     }
   };
+  
+  // Função para atribuir um subordinado a um gerente
+  const handleAssignToManager = async () => {
+    if (!selectedSubordinate || !selectedManager) {
+      toast.error("Selecione o usuário e o gerente");
+      return;
+    }
+    
+    setLoadingAction("assign");
+    try {
+      await assignUserToManager(selectedManager, selectedSubordinate);
+      
+      // Atualizar a lista de usuários
+      await loadUsers();
+      
+      setIsManagerAssignOpen(false);
+      setSelectedSubordinate(null);
+      setSelectedManager(null);
+    } catch (error: any) {
+      console.error("Erro ao atribuir gerente:", error);
+      toast.error(`Erro ao atribuir gerente: ${error.message}`);
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+  
+  // Função para remover um subordinado de um gerente
+  const handleRemoveFromManager = async (userId: string, managerId: string) => {
+    setLoadingAction("unassign-" + userId);
+    try {
+      await removeUserFromManager(managerId, userId);
+      
+      // Atualizar a lista de usuários
+      await loadUsers();
+    } catch (error: any) {
+      console.error("Erro ao remover gerente:", error);
+      toast.error(`Erro ao remover gerente: ${error.message}`);
+    } finally {
+      setLoadingAction(null);
+    }
+  };
 
   // Função para alternar role no formulário de novo usuário
   const toggleRole = (role: UserRole) => {
@@ -370,6 +453,13 @@ export default function Usuarios() {
         roles: [...newUser.roles, role]
       });
     }
+  };
+  
+  // Função para salvar template de email
+  const handleSaveEmailTemplate = (template: EmailTemplateData) => {
+    setEmailTemplate(template);
+    setIsEmailTemplateOpen(false);
+    toast.success("Template de email salvo com sucesso");
   };
 
   // Definição das colunas
@@ -390,6 +480,11 @@ export default function Usuarios() {
             <div>
               <p className="font-medium">{user.nome || "Sem nome"}</p>
               <p className="text-xs text-muted-foreground">{user.email}</p>
+              {user.managerId && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Gerente: {user.managerName}
+                </p>
+              )}
             </div>
           </div>
         );
@@ -405,8 +500,10 @@ export default function Usuarios() {
       header: "Permissões",
       cell: ({ row }) => {
         const roles = row.original.roles;
+        const userId = row.original.id;
+        
         return (
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1 items-center">
             {roles.includes("admin") && (
               <Badge variant="default" className="bg-red-500 hover:bg-red-600">
                 Admin
@@ -430,6 +527,76 @@ export default function Usuarios() {
             {roles.length === 0 && (
               <Badge variant="outline">Sem função</Badge>
             )}
+            
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-6 w-6 ml-1"
+              onClick={() => setActiveUserRolesToEdit(userId === activeUserRolesToEdit ? null : userId)}
+            >
+              <Settings className="h-3.5 w-3.5" />
+            </Button>
+            
+            {activeUserRolesToEdit === userId && (
+              <div className="absolute z-50 mt-32 ml-16 bg-popover border rounded-md shadow-md p-2 flex flex-col gap-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <Button 
+                    size="sm" 
+                    variant={roles.includes("admin") ? "default" : "outline"}
+                    className={roles.includes("admin") ? "bg-red-500 hover:bg-red-600" : ""}
+                    onClick={() => handleRoleChange(userId, "admin", roles.includes("admin"))}
+                    disabled={loadingAction === userId + "admin"}
+                  >
+                    {loadingAction === userId + "admin" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : roles.includes("admin") ? (
+                      <><Check className="h-3.5 w-3.5 mr-1" /> Admin</>
+                    ) : 'Admin'}
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant={roles.includes("gerente") ? "default" : "outline"}
+                    className={roles.includes("gerente") ? "bg-blue-500 hover:bg-blue-600" : ""}
+                    onClick={() => handleRoleChange(userId, "gerente", roles.includes("gerente"))}
+                    disabled={loadingAction === userId + "gerente"}
+                  >
+                    {loadingAction === userId + "gerente" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : roles.includes("gerente") ? (
+                      <><Check className="h-3.5 w-3.5 mr-1" /> Gerente</>
+                    ) : 'Gerente'}
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button 
+                    size="sm" 
+                    variant={roles.includes("corretor") ? "default" : "outline"}
+                    className={roles.includes("corretor") ? "bg-green-500 hover:bg-green-600" : ""}
+                    onClick={() => handleRoleChange(userId, "corretor", roles.includes("corretor"))}
+                    disabled={loadingAction === userId + "corretor"}
+                  >
+                    {loadingAction === userId + "corretor" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : roles.includes("corretor") ? (
+                      <><Check className="h-3.5 w-3.5 mr-1" /> Corretor</>
+                    ) : 'Corretor'}
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant={roles.includes("assistente") ? "default" : "outline"}
+                    className={roles.includes("assistente") ? "bg-orange-500 hover:bg-orange-600" : ""}
+                    onClick={() => handleRoleChange(userId, "assistente", roles.includes("assistente"))}
+                    disabled={loadingAction === userId + "assistente"}
+                  >
+                    {loadingAction === userId + "assistente" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : roles.includes("assistente") ? (
+                      <><Check className="h-3.5 w-3.5 mr-1" /> Assistente</>
+                    ) : 'Assistente'}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         );
       }
@@ -439,97 +606,82 @@ export default function Usuarios() {
       header: "Ações",
       cell: ({ row }) => {
         const userId = row.original.id;
-        const roles = row.original.roles;
         const isCurrentUser = userId === user?.id;
+        const isManager = row.original.roles.includes("gerente");
+        const hasManager = row.original.managerId !== undefined;
+        const roles = row.original.roles;
         
         return (
-          <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-2">
-              <Button 
-                size="sm" 
-                variant={roles.includes("admin") ? "default" : "outline"}
-                className={roles.includes("admin") ? "bg-red-500 hover:bg-red-600" : ""}
-                onClick={() => handleRoleChange(userId, "admin", roles.includes("admin"))}
-                disabled={isCurrentUser && isMasterAdmin || loadingAction === userId + "admin"}
-              >
-                {loadingAction === userId + "admin" ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  'Admin'
-                )}
-              </Button>
-              <Button 
-                size="sm" 
-                variant={roles.includes("gerente") ? "default" : "outline"}
-                className={roles.includes("gerente") ? "bg-blue-500 hover:bg-blue-600" : ""}
-                onClick={() => handleRoleChange(userId, "gerente", roles.includes("gerente"))}
-                disabled={loadingAction === userId + "gerente"}
-              >
-                {loadingAction === userId + "gerente" ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  'Gerente'
-                )}
-              </Button>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <Button 
-                size="sm" 
-                variant={roles.includes("corretor") ? "default" : "outline"}
-                className={roles.includes("corretor") ? "bg-green-500 hover:bg-green-600" : ""}
-                onClick={() => handleRoleChange(userId, "corretor", roles.includes("corretor"))}
-                disabled={loadingAction === userId + "corretor"}
-              >
-                {loadingAction === userId + "corretor" ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  'Corretor'
-                )}
-              </Button>
-              <Button 
-                size="sm" 
-                variant={roles.includes("assistente") ? "default" : "outline"}
-                className={roles.includes("assistente") ? "bg-orange-500 hover:bg-orange-600" : ""}
-                onClick={() => handleRoleChange(userId, "assistente", roles.includes("assistente"))}
-                disabled={loadingAction === userId + "assistente"}
-              >
-                {loadingAction === userId + "assistente" ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  'Assistente'
-                )}
-              </Button>
-            </div>
-            <div className="grid grid-cols-2 gap-2 mt-1">
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex items-center gap-1"
-                onClick={() => handlePrepareEdit(row.original)}
-              >
-                <Pencil className="h-3.5 w-3.5" />
-                Editar
-              </Button>
-              <Button
-                size="sm"
-                variant="destructive"
-                className="flex items-center gap-1"
-                onClick={() => {
-                  setUserToDelete(userId);
-                  setIsDeleteDialogOpen(true);
-                }}
-                disabled={isCurrentUser || loadingAction === "delete-" + userId}
-              >
-                {loadingAction === "delete-" + userId ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <>
-                    <UserX className="h-3.5 w-3.5" />
-                    Excluir
-                  </>
-                )}
-              </Button>
-            </div>
+          <div className="flex flex-wrap gap-2 min-w-[120px]">
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-1"
+              onClick={() => handlePrepareEdit(row.original)}
+              disabled={loadingAction === "edit-" + userId}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              {loadingAction === "edit-" + userId ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                "Editar"
+              )}
+            </Button>
+            
+            {/* Botão para atribuir/remover gerente */}
+            {!isManager && (
+              hasManager ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex items-center gap-1"
+                  onClick={() => handleRemoveFromManager(userId, row.original.managerId!)}
+                  disabled={loadingAction === "unassign-" + userId}
+                >
+                  {loadingAction === "unassign-" + userId ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <>
+                      <Users className="h-3.5 w-3.5" />
+                      Remover Gerente
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex items-center gap-1"
+                  onClick={() => {
+                    setSelectedSubordinate(userId);
+                    setIsManagerAssignOpen(true);
+                  }}
+                >
+                  <Users className="h-3.5 w-3.5" />
+                  Atribuir Gerente
+                </Button>
+              )
+            )}
+            
+            <Button
+              size="sm"
+              variant="destructive"
+              className="flex items-center gap-1"
+              onClick={() => {
+                setUserToDelete(userId);
+                setIsDeleteDialogOpen(true);
+              }}
+              disabled={isCurrentUser || loadingAction === "delete-" + userId}
+            >
+              {loadingAction === "delete-" + userId ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <>
+                  <UserX className="h-3.5 w-3.5" />
+                  Excluir
+                </>
+              )}
+            </Button>
           </div>
         );
       }
@@ -580,7 +732,7 @@ export default function Usuarios() {
                       Novo Usuário
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="max-w-md">
                     <DialogHeader>
                       <DialogTitle>Adicionar Novo Usuário</DialogTitle>
                       <DialogDescription>
@@ -688,7 +840,7 @@ export default function Usuarios() {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="overflow-x-auto">
               <DataTable 
                 columns={columns} 
                 data={users} 
@@ -700,6 +852,31 @@ export default function Usuarios() {
         </TabsContent>
         
         <TabsContent value="convites">
+          <Card className="mb-6">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Template de Email</CardTitle>
+                <CardDescription>
+                  Personalize o email enviado aos novos usuários
+                </CardDescription>
+              </div>
+              <Button 
+                onClick={() => setIsEmailTemplateOpen(true)}
+                variant="outline"
+              >
+                Editar Template
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-muted p-4 rounded-md">
+                <h4 className="font-medium mb-2">Assunto: {emailTemplate.subject}</h4>
+                <div className="whitespace-pre-wrap text-muted-foreground">
+                  {emailTemplate.body}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -752,10 +929,31 @@ export default function Usuarios() {
                             <SelectItem value="assistente">Assistente</SelectItem>
                           </SelectContent>
                         </Select>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Você poderá alterar as permissões depois que o usuário aceitar o convite.
-                        </p>
                       </div>
+                      {(inviteRole === 'corretor' || inviteRole === 'assistente') && (
+                        <div className="grid gap-2">
+                          <Label htmlFor="invite-manager">Atribuir a um Gerente</Label>
+                          <Select
+                            value={inviteManager || ""}
+                            onValueChange={(value) => setInviteManager(value || null)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um gerente (opcional)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="">Sem gerente</SelectItem>
+                              {managers.map(manager => (
+                                <SelectItem key={manager.id} value={manager.id}>
+                                  {manager.nome}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            O gerente poderá visualizar e gerenciar os dados deste usuário.
+                          </p>
+                        </div>
+                      )}
                     </div>
                     <DialogFooter>
                       <Button variant="outline" onClick={() => setIsInviteFormOpen(false)}>Cancelar</Button>
@@ -796,7 +994,7 @@ export default function Usuarios() {
                 Políticas de Permissões
               </CardTitle>
               <CardDescription>
-                Configure políticas de acesso para diferentes funções
+                Hierarquia de acesso para diferentes funções
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -831,8 +1029,12 @@ export default function Usuarios() {
                       <Badge variant="default" className="bg-green-500">Permitido</Badge>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span>Editar usuários</span>
-                      <Badge variant="default" className="bg-red-500">Negado</Badge>
+                      <span>Ver dados de corretores subordinados</span>
+                      <Badge variant="default" className="bg-green-500">Permitido</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Ver dados de assistentes de seus corretores</span>
+                      <Badge variant="default" className="bg-green-500">Permitido</Badge>
                     </div>
                   </div>
                 </div>
@@ -849,8 +1051,12 @@ export default function Usuarios() {
                       <Badge variant="default" className="bg-green-500">Permitido</Badge>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span>Gerenciar agenda própria</span>
+                      <span>Ver dados de assistentes subordinados</span>
                       <Badge variant="default" className="bg-green-500">Permitido</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Ver dados de outros corretores</span>
+                      <Badge variant="default" className="bg-red-500">Negado</Badge>
                     </div>
                   </div>
                 </div>
@@ -867,8 +1073,12 @@ export default function Usuarios() {
                       <Badge variant="default" className="bg-green-500">Permitido</Badge>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span>Editar imóveis</span>
+                      <span>Ver dados de outros assistentes</span>
                       <Badge variant="default" className="bg-red-500">Negado</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Ver dados do corretor atribuído</span>
+                      <Badge variant="default" className="bg-green-500">Permitido</Badge>
                     </div>
                   </div>
                 </div>
@@ -876,7 +1086,7 @@ export default function Usuarios() {
             </CardContent>
             <CardFooter>
               <p className="text-sm text-muted-foreground">
-                As permissões são aplicadas automaticamente com base na função do usuário. Estas configurações não podem ser alteradas.
+                A hierarquia de permissões define quem pode acessar os dados de quem no sistema. Administradores podem acessar todos os dados, Gerentes podem acessar os dados dos seus corretores e assistentes, Corretores podem acessar os dados dos seus assistentes.
               </p>
             </CardFooter>
           </Card>
@@ -964,6 +1174,68 @@ export default function Usuarios() {
               )}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Dialog de atribuição de gerente */}
+      <Dialog open={isManagerAssignOpen} onOpenChange={setIsManagerAssignOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Atribuir Gerente</DialogTitle>
+            <DialogDescription>
+              Selecione um gerente para atribuir ao usuário
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="assign-manager">Gerente</Label>
+              <Select
+                value={selectedManager || ""}
+                onValueChange={(value) => setSelectedManager(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um gerente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {managers.map(manager => (
+                    <SelectItem key={manager.id} value={manager.id}>
+                      {manager.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsManagerAssignOpen(false)}>Cancelar</Button>
+            <Button 
+              onClick={handleAssignToManager}
+              disabled={!selectedManager || loadingAction === "assign"}
+            >
+              {loadingAction === "assign" ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <>Atribuir Gerente</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Dialog de edição de template de email */}
+      <Dialog open={isEmailTemplateOpen} onOpenChange={setIsEmailTemplateOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Personalizar Email de Convite</DialogTitle>
+            <DialogDescription>
+              Edite o template de email enviado para novos usuários
+            </DialogDescription>
+          </DialogHeader>
+          <EmailTemplateEditor 
+            initialValue={emailTemplate} 
+            onSave={handleSaveEmailTemplate}
+            onCancel={() => setIsEmailTemplateOpen(false)}
+          />
         </DialogContent>
       </Dialog>
     </div>

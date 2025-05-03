@@ -126,7 +126,7 @@ export function Sidebar() {
               }
             >
               <Calendar className="w-5 h-5 mr-3 flex-shrink-0" />
-              {(open || (isMobile && openMobile)) && <span>Agenda</span>}
+              {(open || (iMobile && openMobile)) && <span>Agenda</span>}
             </NavLink>
             <NavLink
               to="/documentos"
@@ -136,7 +136,7 @@ export function Sidebar() {
               }
             >
               <FileText className="w-5 h-5 mr-3 flex-shrink-0" />
-              {(open || (isMobile && openMobile)) && <span>Documentos</span>}
+              {(open || (iMobile && openMobile)) && <span>Documentos</span>}
             </NavLink>
             <NavLink
               to="/base-conhecimento"
@@ -146,7 +146,7 @@ export function Sidebar() {
               }
             >
               <BookOpen className="w-5 h-5 mr-3 flex-shrink-0" />
-              {(open || (isMobile && openMobile)) && <span>Base de Conhecimento</span>}
+              {(open || (iMobile && openMobile)) && <span>Base de Conhecimento</span>}
             </NavLink>
             
             {/* Seção Admin - visível apenas para o usuário master */}
@@ -159,7 +159,7 @@ export function Sidebar() {
                 }
               >
                 <UserCog className="w-5 h-5 mr-3 flex-shrink-0" />
-                {(open || (isMobile && openMobile)) && <span>Administração</span>}
+                {(open || (iMobile && openMobile)) && <span>Administração</span>}
               </NavLink>
             )}
           </nav>
@@ -173,7 +173,7 @@ export function Sidebar() {
               }
             >
               <Settings className="w-5 h-5 mr-3 flex-shrink-0" />
-              {(open || (isMobile && openMobile)) && <span>Configurações</span>}
+              {(open || (iMobile && openMobile)) && <span>Configurações</span>}
             </NavLink>
             <button 
               className={`flex items-center w-full px-3 py-2 mt-1 rounded-md ${
@@ -181,7 +181,7 @@ export function Sidebar() {
               }`}
             >
               <LogOut className="w-5 h-5 mr-3 flex-shrink-0" />
-              {(open || (isMobile && openMobile)) && <span>Sair</span>}
+              {(open || (iMobile && openMobile)) && <span>Sair</span>}
             </button>
           </div>
         </div>

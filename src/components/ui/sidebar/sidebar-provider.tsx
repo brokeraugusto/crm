@@ -37,6 +37,8 @@ export const SidebarProvider = React.forwardRef<
     React.useEffect(() => {
       if (isMobile) {
         _setOpen(false);
+      } else {
+        _setOpen(true); // Desktop always starts with sidebar open
       }
     }, [isMobile]);
     
@@ -67,11 +69,11 @@ export const SidebarProvider = React.forwardRef<
           hamburgerBtn && !hamburgerBtn.contains(event.target as Node)) {
         if (!isMobile && open) {
           setOpen(false);
-        } else if (isMobile && openMobile) {
+        } else if (iMobile && openMobile) {
           setOpenMobile(false);
         }
       }
-    }, [isMobile, open, openMobile, setOpen, setOpenMobile]);
+    }, [iMobile, open, openMobile, setOpen, setOpenMobile]);
 
     // Adiciona listener para cliques fora do sidebar
     React.useEffect(() => {
@@ -108,7 +110,7 @@ export const SidebarProvider = React.forwardRef<
         setOpenMobile,
         toggleSidebar,
       }),
-      [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+      [state, open, setOpen, iMobile, openMobile, setOpenMobile, toggleSidebar]
     );
 
     return (
