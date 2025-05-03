@@ -33,6 +33,13 @@ export const SidebarProvider = React.forwardRef<
     const [_open, _setOpen] = React.useState(defaultOpen);
     const open = openProp ?? _open;
     
+    // Inicializa o sidebar com base no dispositivo
+    React.useEffect(() => {
+      if (isMobile) {
+        _setOpen(false);
+      }
+    }, [isMobile]);
+    
     const setOpen = React.useCallback(
       (value: boolean | ((value: boolean) => boolean)) => {
         const openState = typeof value === "function" ? value(open) : value;
@@ -50,6 +57,29 @@ export const SidebarProvider = React.forwardRef<
         ? setOpenMobile((open) => !open)
         : setOpen((open) => !open)
     }, [isMobile, setOpen, setOpenMobile]);
+
+    // Handler para fechar o sidebar quando clicar fora
+    const handleClickOutside = React.useCallback((event: MouseEvent) => {
+      const sidebarElement = document.getElementById('sidebar-main');
+      const hamburgerBtn = document.getElementById('hamburger-button');
+      
+      if (sidebarElement && !sidebarElement.contains(event.target as Node) &&
+          hamburgerBtn && !hamburgerBtn.contains(event.target as Node)) {
+        if (!isMobile && open) {
+          setOpen(false);
+        } else if (isMobile && openMobile) {
+          setOpenMobile(false);
+        }
+      }
+    }, [isMobile, open, openMobile, setOpen, setOpenMobile]);
+
+    // Adiciona listener para cliques fora do sidebar
+    React.useEffect(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, [handleClickOutside]);
 
     React.useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {

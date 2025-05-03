@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 export function Sidebar() {
-  const { open, isMobile, toggleSidebar } = useSidebar();
+  const { open, isMobile, openMobile, toggleSidebar } = useSidebar();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   
@@ -36,7 +36,7 @@ export function Sidebar() {
   return (
     <>
       {/* Mobile overlay */}
-      {isMobile && open && (
+      {isMobile && openMobile && (
         <div 
           className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
           onClick={() => toggleSidebar()}
@@ -47,7 +47,7 @@ export function Sidebar() {
       <div
         id="sidebar-main"
         className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out ${
-          open ? "translate-x-0" : "-translate-x-full"
+          isMobile ? (openMobile ? "translate-x-0" : "-translate-x-full") : (open ? "translate-x-0" : "-translate-x-full")
         } ${isMobile ? "shadow-lg" : ""} ${
           isDark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"
         } border-r md:translate-x-0 ${!open && !isMobile ? "md:w-20" : "md:w-64"}`}
@@ -60,7 +60,7 @@ export function Sidebar() {
             <div className="w-8 h-8 bg-primary-600 rounded-md flex-shrink-0 flex items-center justify-center">
               <span className="text-white font-bold">CP</span>
             </div>
-            {(open || isMobile) && (
+            {(open || (isMobile && openMobile)) && (
               <h1 className={`text-lg font-bold truncate ${isDark ? "text-white" : "text-gray-900"}`}>Casa Próxima</h1>
             )}
           </NavLink>
@@ -77,7 +77,7 @@ export function Sidebar() {
               }
             >
               <Home className="w-5 h-5 mr-3 flex-shrink-0" />
-              {(open || isMobile) && <span>Dashboard</span>}
+              {(open || (isMobile && openMobile)) && <span>Dashboard</span>}
             </NavLink>
             <NavLink
               to="/leads"
@@ -87,7 +87,7 @@ export function Sidebar() {
               }
             >
               <Users className="w-5 h-5 mr-3 flex-shrink-0" />
-              {(open || isMobile) && <span>Leads</span>}
+              {(open || (isMobile && openMobile)) && <span>Leads</span>}
             </NavLink>
             <NavLink
               to="/imoveis"
@@ -97,7 +97,7 @@ export function Sidebar() {
               }
             >
               <Building2 className="w-5 h-5 mr-3 flex-shrink-0" />
-              {(open || isMobile) && <span>Imóveis</span>}
+              {(open || (isMobile && openMobile)) && <span>Imóveis</span>}
             </NavLink>
             <NavLink
               to="/agenda"
@@ -107,7 +107,7 @@ export function Sidebar() {
               }
             >
               <Calendar className="w-5 h-5 mr-3 flex-shrink-0" />
-              {(open || isMobile) && <span>Agenda</span>}
+              {(open || (isMobile && openMobile)) && <span>Agenda</span>}
             </NavLink>
             <NavLink
               to="/documentos"
@@ -117,7 +117,7 @@ export function Sidebar() {
               }
             >
               <FileText className="w-5 h-5 mr-3 flex-shrink-0" />
-              {(open || isMobile) && <span>Documentos</span>}
+              {(open || (isMobile && openMobile)) && <span>Documentos</span>}
             </NavLink>
             <NavLink
               to="/base-conhecimento"
@@ -127,7 +127,7 @@ export function Sidebar() {
               }
             >
               <BookOpen className="w-5 h-5 mr-3 flex-shrink-0" />
-              {(open || isMobile) && <span>Base de Conhecimento</span>}
+              {(open || (isMobile && openMobile)) && <span>Base de Conhecimento</span>}
             </NavLink>
             
             {/* Seção Admin - visível apenas para o usuário master */}
@@ -139,7 +139,7 @@ export function Sidebar() {
               }
             >
               <UserCog className="w-5 h-5 mr-3 flex-shrink-0" />
-              {(open || isMobile) && <span>Administração</span>}
+              {(open || (isMobile && openMobile)) && <span>Administração</span>}
             </NavLink>
           </nav>
           
@@ -152,7 +152,7 @@ export function Sidebar() {
               }
             >
               <Settings className="w-5 h-5 mr-3 flex-shrink-0" />
-              {(open || isMobile) && <span>Configurações</span>}
+              {(open || (isMobile && openMobile)) && <span>Configurações</span>}
             </NavLink>
             <button 
               className={`flex items-center w-full px-3 py-2 mt-1 rounded-md ${
@@ -160,7 +160,7 @@ export function Sidebar() {
               }`}
             >
               <LogOut className="w-5 h-5 mr-3 flex-shrink-0" />
-              {(open || isMobile) && <span>Sair</span>}
+              {(open || (isMobile && openMobile)) && <span>Sair</span>}
             </button>
           </div>
         </div>

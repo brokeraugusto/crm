@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Menu, Bell, Sun, Moon, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTheme } from "@/components/theme/ThemeProvider";
@@ -22,7 +21,7 @@ export function Navbar() {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { toggleSidebar, open, isMobile } = useSidebar();
+  const { toggleSidebar, open, isMobile, openMobile } = useSidebar();
 
   const handleLogout = async () => {
     try {
@@ -49,27 +48,24 @@ export function Navbar() {
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            {isMobile ? (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => toggleSidebar()}
-                className="shrink-0"
-              >
+            <Button
+              id="hamburger-button"
+              variant="ghost"
+              size="icon"
+              onClick={() => toggleSidebar()}
+              className="shrink-0"
+            >
+              {isMobile ? (
                 <Menu className="h-5 w-5" />
-                <span className="sr-only">Menu</span>
-              </Button>
-            ) : (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => toggleSidebar()}
-                className="shrink-0"
-              >
-                {open ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-                <span className="sr-only">Recolher menu</span>
-              </Button>
-            )}
+              ) : open ? (
+                <ChevronLeft className="h-5 w-5" />
+              ) : (
+                <ChevronRight className="h-5 w-5" />
+              )}
+              <span className="sr-only">
+                {isMobile ? "Menu" : open ? "Recolher menu" : "Expandir menu"}
+              </span>
+            </Button>
           </div>
           <div className="flex items-center gap-4">
             <Button
