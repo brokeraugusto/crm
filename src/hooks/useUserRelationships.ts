@@ -11,6 +11,8 @@ export interface UserRelationship {
   users?: {
     nome: string;
   };
+  manager_name?: string;
+  subordinate_name?: string;
 }
 
 export function useUserRelationships() {
@@ -94,16 +96,33 @@ export function useUserRelationships() {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase
+      // First get the relationships
+      const { data: relationships, error } = await supabase
         .from('user_relationships')
-        .select('*, users:subordinate_id(nome)')
+        .select('*')
         .eq('manager_id', managerId);
         
       if (error) {
         throw error;
       }
       
-      return data || [];
+      // Now fetch the user names for each subordinate
+      const enrichedRelationships = await Promise.all(
+        (relationships || []).map(async (relationship) => {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('nome')
+            .eq('id', relationship.subordinate_id)
+            .single();
+          
+          return {
+            ...relationship,
+            users: userData || { nome: 'Usuário desconhecido' }
+          };
+        })
+      );
+      
+      return enrichedRelationships;
     } catch (error: any) {
       console.error("Erro ao obter subordinados:", error);
       toast.error(`Erro ao obter subordinados: ${error.message}`);
@@ -118,9 +137,10 @@ export function useUserRelationships() {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase
+      // First get the relationship
+      const { data: relationship, error } = await supabase
         .from('user_relationships')
-        .select('*, users:manager_id(nome)')
+        .select('*')
         .eq('subordinate_id', userId)
         .maybeSingle();
         
@@ -128,7 +148,21 @@ export function useUserRelationships() {
         throw error;
       }
       
-      return data;
+      if (!relationship) {
+        return null;
+      }
+      
+      // Now fetch the manager's name
+      const { data: userData } = await supabase
+        .from('users')
+        .select('nome')
+        .eq('id', relationship.manager_id)
+        .single();
+      
+      return {
+        ...relationship,
+        users: userData || { nome: 'Gerente desconhecido' }
+      };
     } catch (error: any) {
       console.error("Erro ao obter gerente:", error);
       toast.error(`Erro ao obter gerente: ${error.message}`);
