@@ -1,15 +1,18 @@
+
 import { NavLink } from "react-router-dom";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { useAdmin } from "@/hooks/useAdmin";
-import { Home, Users, Building2, Calendar, FileText, BookOpen, Settings, LogOut, UserCog, ChevronLeft } from "lucide-react";
+import { Home, Users, Building2, Calendar, FileText, BookOpen, Settings, LogOut, UserCog, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
 export function Sidebar() {
   const {
     open,
     isMobile,
     openMobile,
-    toggleSidebar
+    toggleSidebar,
+    setOpen
   } = useSidebar();
   const {
     theme
@@ -23,9 +26,16 @@ export function Sidebar() {
       toggleSidebar();
     }
   };
+  
   const activeClass = `${isDark ? "bg-gray-800 text-white font-medium" : "bg-sidebar-accent text-sidebar-accent-foreground font-medium"}`;
   const normalClass = `${isDark ? "text-gray-300 hover:bg-gray-700 hover:text-white" : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"}`;
   const sidebarWidth = open || isMobile && openMobile ? "w-64" : "w-20";
+  
+  // Handle expand sidebar button click
+  const handleExpandClick = () => {
+    setOpen(true);
+  };
+  
   return <>
       {/* Mobile overlay */}
       {isMobile && openMobile && <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm" onClick={() => toggleSidebar()} />}
@@ -41,11 +51,22 @@ export function Sidebar() {
             {(open || isMobile && openMobile) && <h1 className={`text-lg font-bold truncate ${isDark ? "text-white" : "text-gray-900"}`}>Pleno CRM</h1>}
           </NavLink>
           
-          {/* Desktop collapse button */}
-          {!isMobile && open && <Button variant="ghost" size="sm" onClick={toggleSidebar} className="p-1 rounded-full">
-              <ChevronLeft className="h-5 w-5" />
-              <span className="sr-only">Recolher menu</span>
-            </Button>}
+          {/* Desktop toggle buttons */}
+          {!isMobile && (
+            <>
+              {open ? (
+                <Button variant="ghost" size="sm" onClick={toggleSidebar} className="p-1 rounded-full">
+                  <ChevronLeft className="h-5 w-5" />
+                  <span className="sr-only">Recolher menu</span>
+                </Button>
+              ) : (
+                <Button variant="ghost" size="sm" onClick={handleExpandClick} className="p-1 rounded-full">
+                  <ChevronRight className="h-5 w-5" />
+                  <span className="sr-only">Expandir menu</span>
+                </Button>
+              )}
+            </>
+          )}
         </div>
         
         {/* Sidebar content */}

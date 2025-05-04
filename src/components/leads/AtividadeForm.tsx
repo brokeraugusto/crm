@@ -23,14 +23,23 @@ import {
 } from "@/components/ui/select";
 import { useImoveis } from "@/hooks/useImoveis";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import { CalendarIcon } from "lucide-react";
 
 const schema = z.object({
   titulo: z.string().min(1, "Título é obrigatório"),
   tipo: z.string().min(1, "Tipo é obrigatório"),
-  data: z.string().min(1, "Data é obrigatória"),
+  data: z.date({
+    required_error: "Data é obrigatória",
+  }),
   duracao: z.string().min(1, "Duração é obrigatória"),
   endereco: z.string().optional(),
   descricao: z.string().optional(),
+  cliente: z.string().optional(),
   imovel_id: z.string().optional().or(z.literal("")),
 });
 
@@ -56,15 +65,25 @@ export function AtividadeForm({ leadId, defaultValues, onSubmit, isLoading }: At
   const { imoveis } = useImoveis();
   const { user } = useAuth();
 
+  // Prepare default values with date conversion
+  const getDefaultDate = () => {
+    if (defaultValues?.data) {
+      const date = new Date(defaultValues.data);
+      return date;
+    }
+    return new Date();
+  };
+
   const form = useForm<AtividadeFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       titulo: defaultValues?.titulo || "",
       tipo: defaultValues?.tipo || "visita",
-      data: defaultValues?.data ? new Date(defaultValues.data).toISOString().slice(0, 16) : "",
+      data: getDefaultDate(),
       duracao: defaultValues?.duracao || "1h",
       endereco: defaultValues?.endereco || "",
       descricao: defaultValues?.descricao || "",
+      cliente: defaultValues?.cliente || "",
       imovel_id: defaultValues?.imovel_id || "",
     },
   });
@@ -74,6 +93,7 @@ export function AtividadeForm({ leadId, defaultValues, onSubmit, isLoading }: At
       ...values,
       lead_id: leadId,
       user_id: user?.id,
+      data: values.data.toISOString(), // Convert date to ISO string format
     };
     onSubmit(formattedValues);
   };
@@ -108,7 +128,7 @@ export function AtividadeForm({ leadId, defaultValues, onSubmit, isLoading }: At
                       <SelectValue placeholder="Selecione um tipo" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className="overflow-y-auto max-h-[300px]">
                     {tiposAtividade.map((tipo) => (
                       <SelectItem key={tipo.value} value={tipo.value}>
                         {tipo.label}
@@ -133,7 +153,7 @@ export function AtividadeForm({ leadId, defaultValues, onSubmit, isLoading }: At
                       <SelectValue placeholder="Duração" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className="overflow-y-auto max-h-[300px]">
                     <SelectItem value="30min">30 minutos</SelectItem>
                     <SelectItem value="1h">1 hora</SelectItem>
                     <SelectItem value="1h30">1 hora e 30 minutos</SelectItem>
@@ -152,10 +172,66 @@ export function AtividadeForm({ leadId, defaultValues, onSubmit, isLoading }: At
           control={form.control}
           name="data"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="flex flex-col">
               <FormLabel>Data e Hora</FormLabel>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP", { locale: ptBR })
+                        ) : (
+                          <span>Selecione uma data</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                      locale={ptBR}
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+                
+                <FormControl>
+                  <Input 
+                    type="time" 
+                    value={format(field.value, "HH:mm")} 
+                    onChange={(e) => {
+                      const [hours, minutes] = e.target.value.split(':').map(Number);
+                      const newDate = new Date(field.value);
+                      newDate.setHours(hours, minutes);
+                      field.onChange(newDate);
+                    }}
+                  />
+                </FormControl>
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="cliente"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Cliente (opcional)</FormLabel>
               <FormControl>
-                <Input type="datetime-local" {...field} />
+                <Input placeholder="Nome do cliente" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -174,8 +250,8 @@ export function AtividadeForm({ leadId, defaultValues, onSubmit, isLoading }: At
                     <SelectValue placeholder="Selecione um imóvel (opcional)" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent>
-                  <SelectItem value="none">Nenhum</SelectItem>
+                <SelectContent className="overflow-y-auto max-h-[300px]">
+                  <SelectItem value="">Nenhum</SelectItem>
                   {imoveis.map((imovel) => (
                     <SelectItem key={imovel.id} value={imovel.id}>
                       {imovel.titulo}

@@ -89,8 +89,8 @@ export function AtividadeForm({
       dataComHora.setHours(horaNum, minutoNum);
       
       const atividadeData = {
-        titulo: data.titulo, // Ensure título is explicitly included
-        tipo: data.tipo,     // Ensure tipo is explicitly included
+        titulo: data.titulo,
+        tipo: data.tipo,
         data: dataComHora.toISOString(),
         duracao: data.duracao,
         endereco: data.endereco || null,
@@ -147,7 +147,7 @@ export function AtividadeForm({
                       <SelectValue placeholder="Selecione o tipo" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className="overflow-y-auto max-h-[300px]">
                     <SelectItem value="visita">Visita</SelectItem>
                     <SelectItem value="reuniao">Reunião</SelectItem>
                     <SelectItem value="contato">Contato</SelectItem>
@@ -175,7 +175,7 @@ export function AtividadeForm({
                       <SelectValue placeholder="Selecione a duração" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className="overflow-y-auto max-h-[300px]">
                     <SelectItem value="15 minutos">15 minutos</SelectItem>
                     <SelectItem value="30 minutos">30 minutos</SelectItem>
                     <SelectItem value="1 hora">1 hora</SelectItem>
