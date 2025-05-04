@@ -925,3 +925,276 @@ Equipe Casa Próxima`
                             <SelectItem value="admin">Administrador</SelectItem>
                             <SelectItem value="gerente">Gerente</SelectItem>
                             <SelectItem value="corretor">Corretor</SelectItem>
+                            <SelectItem value="assistente">Assistente</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {(inviteRole === "corretor" || inviteRole === "assistente") && (
+                        <div className="grid gap-2">
+                          <Label htmlFor="invite-manager">Atribuir a um Gerente</Label>
+                          <Select
+                            value={inviteManager || ""}
+                            onValueChange={(value) => setInviteManager(value === "none" ? null : value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um gerente (opcional)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Sem gerente</SelectItem>
+                              {managers.map((manager) => (
+                                <SelectItem key={manager.id} value={manager.id}>
+                                  {manager.nome}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
+                    <DialogFooter>
+                      <div className="flex justify-between w-full">
+                        <Button 
+                          variant="outline" 
+                          type="button"
+                          onClick={() => setIsEmailTemplateOpen(true)}
+                        >
+                          Editar Template
+                        </Button>
+                        <div>
+                          <Button 
+                            variant="outline" 
+                            onClick={() => setIsInviteFormOpen(false)}
+                            className="mr-2"
+                          >
+                            Cancelar
+                          </Button>
+                          <Button 
+                            onClick={handleSendInvite}
+                            disabled={loadingAction === "invite"}
+                          >
+                            {loadingAction === "invite" ? (
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                              <Mail className="h-4 w-4 mr-2" />
+                            )}
+                            Enviar Convite
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="permissoes">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Gerenciamento de Permissões
+              </CardTitle>
+              <CardDescription>
+                Configure as permissões e relacionamentos entre usuários
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="border rounded-md p-4">
+                  <h3 className="text-lg font-medium mb-4">Atribuir Subordinados a Gerentes</h3>
+                  <Dialog open={isManagerAssignOpen} onOpenChange={setIsManagerAssignOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        Atribuir Usuário a Gerente
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Atribuir Usuário a um Gerente</DialogTitle>
+                        <DialogDescription>
+                          Selecione o usuário e o gerente para criar a relação
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                          <Label>Selecione o Usuário</Label>
+                          <Select
+                            value={selectedSubordinate || ""}
+                            onValueChange={setSelectedSubordinate}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um usuário" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {users
+                                .filter(u => !u.roles.includes("gerente") && !u.roles.includes("admin"))
+                                .map(user => (
+                                  <SelectItem key={user.id} value={user.id}>
+                                    {user.nome} ({user.roles.join(", ")})
+                                  </SelectItem>
+                                ))
+                              }
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label>Selecione o Gerente</Label>
+                          <Select
+                            value={selectedManager || ""}
+                            onValueChange={setSelectedManager}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um gerente" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {managers.map(manager => (
+                                <SelectItem key={manager.id} value={manager.id}>
+                                  {manager.nome}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setIsManagerAssignOpen(false)}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button 
+                          onClick={handleAssignToManager}
+                          disabled={!selectedSubordinate || !selectedManager || loadingAction === "assign"}
+                        >
+                          {loadingAction === "assign" ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <Check className="h-4 w-4 mr-2" />
+                          )}
+                          Atribuir
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+      
+      {/* Dialog para excluir usuário */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Confirmar Exclusão
+            </DialogTitle>
+            <DialogDescription>
+              Esta ação não pode ser desfeita. O usuário será removido permanentemente do sistema.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p>Tem certeza que deseja excluir este usuário?</p>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={handleDeleteUser}
+              disabled={loadingAction?.startsWith("delete-")}
+            >
+              {loadingAction?.startsWith("delete-") ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <X className="h-4 w-4 mr-2" />
+              )}
+              Excluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Dialog para editar usuário */}
+      <Dialog open={isEditUserFormOpen} onOpenChange={setIsEditUserFormOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Usuário</DialogTitle>
+            <DialogDescription>
+              Edite as informações do usuário.
+            </DialogDescription>
+          </DialogHeader>
+          {userToEdit && (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-nome">Nome</Label>
+                <Input
+                  id="edit-nome"
+                  placeholder="Nome completo"
+                  value={userToEdit.nome}
+                  onChange={(e) => setUserToEdit({...userToEdit, nome: e.target.value})}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-telefone">Telefone</Label>
+                <Input
+                  id="edit-telefone"
+                  placeholder="(00) 00000-0000"
+                  value={userToEdit.telefone || ""}
+                  onChange={(e) => setUserToEdit({...userToEdit, telefone: e.target.value})}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsEditUserFormOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleSaveEdit}
+              disabled={loadingAction?.startsWith("edit-")}
+            >
+              {loadingAction?.startsWith("edit-") ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Check className="h-4 w-4 mr-2" />
+              )}
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Dialog para editar template de email */}
+      <Dialog open={isEmailTemplateOpen} onOpenChange={setIsEmailTemplateOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Editar Template de Email</DialogTitle>
+            <DialogDescription>
+              Personalize o email enviado aos novos usuários
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <EmailTemplateEditor 
+              value={emailTemplate}
+              onChange={handleSaveEmailTemplate}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
