@@ -140,10 +140,10 @@
   .dark button:hover, 
   .dark a:hover,
   .dark .hover-element:hover {
-    @apply text-white bg-gray-700;
+    @apply bg-gray-700 text-white;
   }
   
-  /* Melhorar contraste de text em menus dropdown no tema escuro */
+  /* Melhorar contraste de texto em menus dropdown no tema escuro */
   .dark [data-radix-popper-content-wrapper] * {
     @apply text-gray-200;
   }
@@ -156,11 +156,24 @@
   /* Adicionar suporte para telas maiores */
   @media (min-width: 1536px) {
     .container {
-      @apply max-w-7xl;
+      @apply max-w-7xl mx-auto;
     }
     
     .form-wrapper {
       @apply max-w-5xl mx-auto;
+    }
+  }
+
+  /* Garantir que os itens do menu dropdown sejam legíveis */
+  .dark [data-radix-select-content] [data-radix-select-item],
+  [data-radix-select-content] [data-radix-select-item] {
+    @apply hover:bg-accent hover:text-accent-foreground;
+  }
+
+  /* Melhorar visualização em dispositivos móveis */
+  @media (max-width: 640px) {
+    .container {
+      @apply px-2;
     }
   }
 }

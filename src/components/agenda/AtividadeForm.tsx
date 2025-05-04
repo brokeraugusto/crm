@@ -223,6 +223,7 @@ export function AtividadeForm({
                       onSelect={field.onChange}
                       initialFocus
                       locale={ptBR}
+                      className="p-3 pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>

@@ -52,7 +52,7 @@ export function VincularImovelForm({ leadId }: VincularImovelFormProps) {
               </SelectItem>
             ))}
             {imoveisDisponiveis.length === 0 && (
-              <SelectItem value="no_items_available" disabled>
+              <SelectItem value="no-items-available" disabled>
                 Não há imóveis disponíveis para vincular
               </SelectItem>
             )}
