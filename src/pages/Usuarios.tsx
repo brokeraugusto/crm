@@ -1189,8 +1189,8 @@ Equipe Casa Próxima`
           </DialogHeader>
           <div className="py-4">
             <EmailTemplateEditor 
-              value={emailTemplate}
-              onChange={handleSaveEmailTemplate}
+              initialValue={emailTemplate}
+              onSave={handleSaveEmailTemplate}
             />
           </div>
         </DialogContent>
