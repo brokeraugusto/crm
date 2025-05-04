@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -93,7 +92,7 @@ export default function Imoveis() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in pb-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-2">
           <Building2 className="h-5 w-5 text-muted-foreground" />
@@ -256,7 +255,7 @@ export default function Imoveis() {
 
       {/* Dialog para formulário de imóvel */}
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl max-h-[95vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>{editMode ? "Editar Imóvel" : "Novo Imóvel"}</DialogTitle>
           </DialogHeader>
