@@ -14,21 +14,23 @@ export default function Configuracoes() {
         </p>
       </div>
 
-      <ScrollArea className="w-full">
-        <Tabs defaultValue="integracoes" className="w-full">
-          <TabsList>
-            <TabsTrigger value="integracoes">Integrações Google</TabsTrigger>
-            <TabsTrigger value="webhooks">Webhooks (n8n)</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="integracoes" className="space-y-6 w-full">
-            <GoogleIntegrationForm />
-          </TabsContent>
-          
-          <TabsContent value="webhooks" className="space-y-6 w-full">
-            <WebhookIntegrationForm />
-          </TabsContent>
-        </Tabs>
+      <ScrollArea className="h-[calc(100vh-12rem)] w-full">
+        <div className="pr-4 pb-8">
+          <Tabs defaultValue="integracoes" className="w-full">
+            <TabsList className="mb-4 w-full sm:w-auto flex flex-wrap">
+              <TabsTrigger value="integracoes" className="mb-1 sm:mb-0">Integrações Google</TabsTrigger>
+              <TabsTrigger value="webhooks" className="mb-1 sm:mb-0">Webhooks (n8n)</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="integracoes" className="space-y-6 w-full">
+              <GoogleIntegrationForm />
+            </TabsContent>
+            
+            <TabsContent value="webhooks" className="space-y-6 w-full">
+              <WebhookIntegrationForm />
+            </TabsContent>
+          </Tabs>
+        </div>
       </ScrollArea>
     </div>
   );

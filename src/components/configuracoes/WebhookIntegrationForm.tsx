@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -31,6 +31,7 @@ interface WebhookConfig {
   webhook_url: string;
   description: string;
   created_at: string;
+  updated_at?: string | null;
 }
 
 export function WebhookIntegrationForm() {
@@ -39,7 +40,7 @@ export function WebhookIntegrationForm() {
   const [webhooks, setWebhooks] = useState<WebhookConfig[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   
-  // Formulário
+  // Form initialization
   const form = useForm<z.infer<typeof webhookSchema>>({
     resolver: zodResolver(webhookSchema),
     defaultValues: {
@@ -48,25 +49,25 @@ export function WebhookIntegrationForm() {
     },
   });
   
-  // Carregar webhooks existentes
-  useState(() => {
+  // Load existing webhooks
+  useEffect(() => {
     async function loadWebhooks() {
       try {
-        // Obter usuário atual
+        // Get current user
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) return;
         
         setUserId(user.id);
         
-        // Buscar webhooks existentes
+        // Fetch existing webhooks using typed query
         const { data, error } = await supabase
           .from('webhooks')
           .select('*')
           .eq('user_id', user.id);
           
         if (error) {
-          console.error("Erro ao carregar webhooks:", error);
+          console.error("Error loading webhooks:", error);
           return;
         }
         
@@ -74,33 +75,33 @@ export function WebhookIntegrationForm() {
           setWebhooks(data as WebhookConfig[]);
         }
       } catch (error) {
-        console.error("Erro ao carregar webhooks:", error);
+        console.error("Error loading webhooks:", error);
       }
     }
     
     loadWebhooks();
   }, []);
   
-  // Testar webhook
+  // Test webhook
   const testWebhook = async (webhookUrl: string) => {
     try {
       setIsLoading(true);
       
-      // Preparar payload de teste
+      // Prepare test payload
       const testPayload = {
         type: "TEST",
         timestamp: new Date().toISOString(),
         message: "Este é um teste do Pleno CRM"
       };
       
-      // Enviar requisição para o webhook
-      const response = await fetch(webhookUrl, {
+      // Send request to webhook
+      await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(testPayload),
-        mode: 'no-cors' // Importante para evitar erros de CORS com webhooks
+        mode: 'no-cors' // Important to avoid CORS errors with webhooks
       });
       
       toast({
@@ -108,7 +109,7 @@ export function WebhookIntegrationForm() {
         description: "O webhook foi testado. Verifique sua integração para confirmar o recebimento.",
       });
     } catch (error: any) {
-      console.error("Erro ao testar webhook:", error);
+      console.error("Error testing webhook:", error);
       toast({
         title: "Erro",
         description: `Erro ao testar webhook: ${error.message}`,
@@ -119,7 +120,7 @@ export function WebhookIntegrationForm() {
     }
   };
   
-  // Excluir webhook
+  // Delete webhook
   const deleteWebhook = async (webhookId: string) => {
     try {
       setIsLoading(true);
@@ -131,7 +132,7 @@ export function WebhookIntegrationForm() {
         
       if (error) throw error;
       
-      // Atualizar lista de webhooks
+      // Update webhooks list
       setWebhooks(webhooks.filter(webhook => webhook.id !== webhookId));
       
       toast({
@@ -139,7 +140,7 @@ export function WebhookIntegrationForm() {
         description: "O webhook foi removido com sucesso.",
       });
     } catch (error: any) {
-      console.error("Erro ao remover webhook:", error);
+      console.error("Error removing webhook:", error);
       toast({
         title: "Erro",
         description: `Erro ao remover webhook: ${error.message}`,
@@ -150,7 +151,7 @@ export function WebhookIntegrationForm() {
     }
   };
   
-  // Adicionar webhook
+  // Add webhook
   async function onSubmit(values: z.infer<typeof webhookSchema>) {
     if (!userId) {
       toast({
@@ -164,7 +165,7 @@ export function WebhookIntegrationForm() {
     setIsLoading(true);
     
     try {
-      // Adicionar webhook
+      // Add webhook
       const { data, error } = await supabase
         .from('webhooks')
         .insert({
@@ -176,11 +177,11 @@ export function WebhookIntegrationForm() {
         
       if (error) throw error;
       
-      if (data) {
+      if (data && data.length > 0) {
         setWebhooks([...webhooks, data[0] as WebhookConfig]);
       }
       
-      // Resetar formulário
+      // Reset form
       form.reset();
       
       toast({
@@ -188,7 +189,7 @@ export function WebhookIntegrationForm() {
         description: "O webhook foi adicionado com sucesso.",
       });
     } catch (error: any) {
-      console.error("Erro ao adicionar webhook:", error);
+      console.error("Error adding webhook:", error);
       toast({
         title: "Erro",
         description: `Erro ao adicionar webhook: ${error.message}`,

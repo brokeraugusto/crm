@@ -4,7 +4,6 @@ import { Navbar } from "./Navbar";
 import { Sidebar } from "./Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function MainLayout() {
   const isMobile = useIsMobile();
@@ -15,11 +14,9 @@ export function MainLayout() {
         <Sidebar />
         <div className="relative flex flex-col flex-1 w-full overflow-hidden">
           <Navbar />
-          <ScrollArea className="flex-1">
-            <main className="p-4 sm:p-6">
-              <Outlet />
-            </main>
-          </ScrollArea>
+          <main className="flex-1 overflow-auto p-4 sm:p-6">
+            <Outlet />
+          </main>
         </div>
       </div>
     </SidebarProvider>
