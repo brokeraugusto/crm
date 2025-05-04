@@ -8,6 +8,9 @@ export interface UserRelationship {
   manager_id: string;
   subordinate_id: string;
   created_at: string;
+  users?: {
+    nome: string;
+  };
 }
 
 export function useUserRelationships() {
@@ -93,7 +96,7 @@ export function useUserRelationships() {
       
       const { data, error } = await supabase
         .from('user_relationships')
-        .select('*')
+        .select('*, users:subordinate_id(nome)')
         .eq('manager_id', managerId);
         
       if (error) {
@@ -117,7 +120,7 @@ export function useUserRelationships() {
       
       const { data, error } = await supabase
         .from('user_relationships')
-        .select('*')
+        .select('*, users:manager_id(nome)')
         .eq('subordinate_id', userId)
         .maybeSingle();
         

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -82,14 +81,14 @@ export default function Usuarios() {
   const [emailTemplate, setEmailTemplate] = useState<EmailTemplateData>({
     subject: "Convite para Casa Próxima",
     body: `Olá,
-
+    
 Você foi convidado para participar do sistema Casa Próxima.
-
+    
 Clique no link abaixo para criar sua conta e começar a utilizar o sistema:
 [LINK_CONVITE]
-
+    
 Se você tiver alguma dúvida, entre em contato com o administrador.
-
+    
 Atenciosamente,
 Equipe Casa Próxima`
   });
