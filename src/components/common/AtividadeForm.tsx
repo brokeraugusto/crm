@@ -1,48 +1,13 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Form } from "@/components/ui/form";
 import { Atividade } from "@/types/leads";
-import { DialogFooter } from "@/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
+import { atividadeSchema, AtividadeFormData } from "./validation/atividadeSchema";
+import { AtividadeFormFields } from "./AtividadeFormFields";
+import { AtividadeFormButtons } from "./AtividadeFormButtons";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { cn } from "@/lib/utils";
-
-const atividadeSchema = z.object({
-  titulo: z.string().min(3, "Título deve ter pelo menos 3 caracteres"),
-  tipo: z.string().min(1, "Selecione o tipo de atividade"),
-  data: z.date({
-    required_error: "Data e hora são obrigatórias",
-  }),
-  duracao: z.string().min(1, "Informe a duração"),
-  endereco: z.string().optional(),
-  descricao: z.string().optional(),
-  cliente: z.string().optional(),
-});
-
-export type AtividadeFormData = z.infer<typeof atividadeSchema>;
 
 interface AtividadeFormProps {
   defaultValues?: Partial<Atividade>;
@@ -111,202 +76,12 @@ export function AtividadeForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="titulo"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Título</FormLabel>
-              <FormControl>
-                <Input placeholder="Visita ao apartamento..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+        <AtividadeFormFields form={form} hora={hora} setHora={setHora} />
+        <AtividadeFormButtons 
+          onClose={onClose}
+          isLoading={isLoading}
+          isEditing={!!defaultValues?.id}
         />
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="tipo"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tipo</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent className="overflow-y-auto max-h-[300px]">
-                    <SelectItem value="visita">Visita</SelectItem>
-                    <SelectItem value="reuniao">Reunião</SelectItem>
-                    <SelectItem value="contato">Contato</SelectItem>
-                    <SelectItem value="assinatura">Assinatura</SelectItem>
-                    <SelectItem value="vistoria">Vistoria</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="duracao"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Duração</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a duração" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent className="overflow-y-auto max-h-[300px]">
-                    <SelectItem value="15 minutos">15 minutos</SelectItem>
-                    <SelectItem value="30 minutos">30 minutos</SelectItem>
-                    <SelectItem value="1 hora">1 hora</SelectItem>
-                    <SelectItem value="2 horas">2 horas</SelectItem>
-                    <SelectItem value="Meio período">Meio período</SelectItem>
-                    <SelectItem value="Dia inteiro">Dia inteiro</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="data"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Data</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP", { locale: ptBR })
-                        ) : (
-                          <span>Selecione uma data</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 z-50 bg-background text-foreground" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      initialFocus
-                      locale={ptBR}
-                      className="p-3 pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormItem>
-            <FormLabel>Hora</FormLabel>
-            <FormControl>
-              <Input 
-                type="time" 
-                value={hora}
-                onChange={(e) => setHora(e.target.value)} 
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        </div>
-
-        <FormField
-          control={form.control}
-          name="cliente"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Cliente</FormLabel>
-              <FormControl>
-                <Input placeholder="Nome do cliente..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="endereco"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Endereço</FormLabel>
-              <FormControl>
-                <Input placeholder="Onde será realizada a atividade..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="descricao"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descrição</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Detalhes adicionais da atividade..."
-                  className="h-20"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="pt-2">
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="sm" 
-            className="text-primary"
-            disabled={isLoading}
-          >
-            Sincronizar com Google Agenda
-          </Button>
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} type="button">
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Salvando..." : defaultValues?.id ? "Atualizar" : "Agendar"}
-          </Button>
-        </DialogFooter>
       </form>
     </Form>
   );
