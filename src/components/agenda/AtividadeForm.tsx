@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Atividade } from "@/types/leads";
-import { useAgendaOperations } from "@/hooks/useAgendaOperations";
+import { useAtividadeSubmit } from "@/hooks/useAtividadeSubmit";
 import { AtividadeForm as CommonAtividadeForm } from "../common/AtividadeForm";
 
 interface AtividadeFormProps {
@@ -17,28 +17,17 @@ export function AtividadeForm({
   leadId, 
   imovelId 
 }: AtividadeFormProps) {
-  const { criarAtividade, atualizarAtividade, loading } = useAgendaOperations();
+  const { handleSubmit, loading } = useAtividadeSubmit({
+    atividadeParaEditar,
+    onClose,
+    leadId,
+    imovelId
+  });
   
-  async function onSubmit(data: any) {
-    try {
-      if (atividadeParaEditar) {
-        await atualizarAtividade.mutateAsync({ 
-          id: atividadeParaEditar.id, 
-          ...data 
-        });
-      } else {
-        await criarAtividade.mutateAsync(data);
-      }
-      onClose();
-    } catch (error) {
-      console.error("Erro ao salvar atividade:", error);
-    }
-  }
-
   return (
     <CommonAtividadeForm
       defaultValues={atividadeParaEditar}
-      onSubmit={onSubmit}
+      onSubmit={handleSubmit}
       onClose={onClose}
       isLoading={loading}
       leadId={leadId}

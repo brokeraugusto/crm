@@ -1,22 +1,22 @@
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import React from "react";
 import { Atividade } from "@/types/leads";
-import { AtividadeForm as CommonAtividadeForm, AtividadeFormData } from "../common/AtividadeForm";
+import { AtividadeForm as CommonAtividadeForm } from "../common/AtividadeForm";
 
 interface AtividadeFormProps {
   leadId: string;
   defaultValues?: Atividade;
   onSubmit: (data: any) => void;
   isLoading: boolean;
+  onClose?: () => void;
 }
 
 export function AtividadeForm({ 
   leadId, 
   defaultValues, 
   onSubmit,
-  isLoading
+  isLoading,
+  onClose
 }: AtividadeFormProps) {
   return (
     <CommonAtividadeForm
@@ -24,6 +24,7 @@ export function AtividadeForm({
       defaultValues={defaultValues}
       onSubmit={onSubmit}
       isLoading={isLoading}
+      onClose={onClose}
     />
   );
 }
