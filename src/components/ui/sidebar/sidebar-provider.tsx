@@ -33,7 +33,7 @@ export const SidebarProvider = React.forwardRef<
     const [_open, _setOpen] = React.useState(defaultOpen);
     const open = openProp ?? _open;
     
-    // Inicializa o sidebar com base no dispositivo
+    // Initialize sidebar based on device
     React.useEffect(() => {
       if (isMobile) {
         _setOpen(false);
@@ -60,13 +60,15 @@ export const SidebarProvider = React.forwardRef<
         : setOpen((open) => !open);
     }, [isMobile, setOpen, setOpenMobile]);
 
-    // Handler para fechar o sidebar quando clicar fora
+    // Handler for closing the sidebar when clicking outside
     const handleClickOutside = React.useCallback((event: MouseEvent) => {
       const sidebarElement = document.getElementById('sidebar-main');
       const hamburgerBtn = document.getElementById('hamburger-button');
+      const sidebarCollapsed = document.querySelector('.sidebar-collapsed');
       
       if (sidebarElement && !sidebarElement.contains(event.target as Node) &&
-          hamburgerBtn && !hamburgerBtn.contains(event.target as Node)) {
+          hamburgerBtn && !hamburgerBtn.contains(event.target as Node) &&
+          sidebarCollapsed && !sidebarCollapsed.contains(event.target as Node)) {
         // Only close if mobile sidebar is open - desktop sidebar should remain as user set it
         if (isMobile && openMobile) {
           setOpenMobile(false);
@@ -74,7 +76,7 @@ export const SidebarProvider = React.forwardRef<
       }
     }, [isMobile, openMobile, setOpenMobile]);
 
-    // Adiciona listener para cliques fora do sidebar
+    // Add listener for clicks outside the sidebar
     React.useEffect(() => {
       document.addEventListener('mousedown', handleClickOutside);
       return () => {
@@ -130,6 +132,16 @@ export const SidebarProvider = React.forwardRef<
             ref={ref}
             {...props}
           >
+            {!open && !isMobile && (
+              <div 
+                className="sidebar-collapsed fixed left-0 top-1/2 -translate-y-1/2 bg-background border border-border rounded-r-md p-1 cursor-pointer z-50 shadow-md hover:bg-accent"
+                onClick={() => setOpen(true)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </div>
+            )}
             {children}
           </div>
         </TooltipProvider>

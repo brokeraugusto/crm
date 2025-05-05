@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       atividades: {
         Row: {
+          cliente: string | null
           created_at: string
           data: string
           descricao: string | null
@@ -25,6 +26,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          cliente?: string | null
           created_at?: string
           data: string
           descricao?: string | null
@@ -39,6 +41,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          cliente?: string | null
           created_at?: string
           data?: string
           descricao?: string | null
