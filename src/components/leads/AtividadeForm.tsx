@@ -1,6 +1,7 @@
 
 import React from "react";
 import { Atividade } from "@/types/leads";
+import { useAtividadeSubmit } from "@/hooks/useAtividadeSubmit";
 import { AtividadeForm as CommonAtividadeForm } from "../common/AtividadeForm";
 
 interface AtividadeFormProps {
