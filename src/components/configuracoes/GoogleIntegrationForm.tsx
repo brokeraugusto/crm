@@ -15,11 +15,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, FileText, Key, AlertCircle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Calendar, FileText, Key, AlertCircle, Check } from "lucide-react";
+import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useTheme } from "@/components/theme/ThemeProvider";
 
 // Interface for our user_api_keys table that's not yet in the types
 interface ApiKeys {
@@ -45,9 +47,11 @@ const googleApiSchema = z.object({
 });
 
 export function GoogleIntegrationForm() {
-  const { toast } = useToast();
+  const { theme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [driveTestSuccess, setDriveTestSuccess] = useState(false);
+  const [calendarTestSuccess, setCalendarTestSuccess] = useState(false);
   
   // Formulário
   const form = useForm<z.infer<typeof googleApiSchema>>({
@@ -108,10 +112,8 @@ export function GoogleIntegrationForm() {
     const values = form.getValues();
     
     if (!values.driveApiKey || !values.driveClientId || !values.driveClientSecret) {
-      toast({
-        title: "Erro",
+      toast.error("Erro", {
         description: "Preencha todas as informações do Google Drive para testar a conexão",
-        variant: "destructive",
       });
       return;
     }
@@ -122,15 +124,18 @@ export function GoogleIntegrationForm() {
       // Simulando teste de integração
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      toast({
-        title: "Teste bem-sucedido",
+      setDriveTestSuccess(true);
+      toast.success("Teste bem-sucedido", {
         description: "A conexão com o Google Drive foi testada com sucesso.",
       });
+      
+      // Reset success state after 3 seconds
+      setTimeout(() => {
+        setDriveTestSuccess(false);
+      }, 3000);
     } catch (error: any) {
-      toast({
-        title: "Erro",
+      toast.error("Erro", {
         description: `Erro ao testar conexão: ${error.message}`,
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -142,10 +147,8 @@ export function GoogleIntegrationForm() {
     const values = form.getValues();
     
     if (!values.calendarApiKey || !values.calendarClientId || !values.calendarClientSecret) {
-      toast({
-        title: "Erro",
+      toast.error("Erro", {
         description: "Preencha todas as informações do Google Agenda para testar a conexão",
-        variant: "destructive",
       });
       return;
     }
@@ -156,15 +159,18 @@ export function GoogleIntegrationForm() {
       // Simulando teste de integração
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      toast({
-        title: "Teste bem-sucedido",
+      setCalendarTestSuccess(true);
+      toast.success("Teste bem-sucedido", {
         description: "A conexão com o Google Agenda foi testada com sucesso.",
       });
+      
+      // Reset success state after 3 seconds
+      setTimeout(() => {
+        setCalendarTestSuccess(false);
+      }, 3000);
     } catch (error: any) {
-      toast({
-        title: "Erro",
+      toast.error("Erro", {
         description: `Erro ao testar conexão: ${error.message}`,
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -174,10 +180,8 @@ export function GoogleIntegrationForm() {
   // Enviar configurações
   async function onSubmit(values: z.infer<typeof googleApiSchema>) {
     if (!userId) {
-      toast({
-        title: "Erro",
+      toast.error("Erro", {
         description: "Você precisa estar logado para salvar configurações",
-        variant: "destructive",
       });
       return;
     }
@@ -202,15 +206,12 @@ export function GoogleIntegrationForm() {
         throw error;
       }
       
-      toast({
-        title: "Configurações salvas",
+      toast.success("Configurações salvas", {
         description: "Suas credenciais do Google foram salvas com sucesso.",
       });
     } catch (error: any) {
-      toast({
-        title: "Erro",
+      toast.error("Erro", {
         description: `Erro ao salvar configurações: ${error.message}`,
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -218,7 +219,7 @@ export function GoogleIntegrationForm() {
   }
   
   return (
-    <Card className="w-full overflow-hidden">
+    <Card className={`w-full overflow-hidden ${theme === 'dark' ? 'bg-gray-800' : ''}`}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Key className="h-5 w-5 text-primary" />
@@ -228,150 +229,165 @@ export function GoogleIntegrationForm() {
           Insira suas credenciais do Google para integrar com o Google Drive e Google Agenda
         </CardDescription>
       </CardHeader>
-      <CardContent className="overflow-x-auto">
-        <Alert className="mb-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Como obter credenciais</AlertTitle>
-          <AlertDescription>
-            Para obter suas credenciais do Google, visite o <a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Google Cloud Console</a>, crie um projeto e habilite as APIs do Google Drive e Google Calendar.
-          </AlertDescription>
-        </Alert>
+      <CardContent>
+        <ScrollArea className="h-[65vh] overflow-y-auto pr-4">
+          <Alert className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Como obter credenciais</AlertTitle>
+            <AlertDescription>
+              Para obter suas credenciais do Google, visite o <a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Google Cloud Console</a>, 
+              crie um projeto e habilite as APIs do Google Drive e Google Calendar.
+            </AlertDescription>
+          </Alert>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <FileText className="h-5 w-5 text-blue-600" />
-                <h3 className="text-lg font-medium">Google Drive</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="driveApiKey"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>API Key</FormLabel>
-                      <FormControl>
-                        <Input placeholder="AIzaSyC..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <FileText className="h-5 w-5 text-blue-600" />
+                  <h3 className="text-lg font-medium">Google Drive</h3>
+                </div>
                 
-                <FormField
-                  control={form.control}
-                  name="driveClientId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Client ID</FormLabel>
-                      <FormControl>
-                        <Input placeholder="12345...apps.googleusercontent.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="driveClientSecret"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel>Client Secret</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="GOCSPX-..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="driveApiKey"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>API Key</FormLabel>
+                        <FormControl>
+                          <Input placeholder="AIzaSyC..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="driveClientId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Client ID</FormLabel>
+                        <FormControl>
+                          <Input placeholder="12345...apps.googleusercontent.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="driveClientSecret"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>Client Secret</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="GOCSPX-..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <div className="md:col-span-2">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={testGoogleDriveIntegration}
-                    disabled={isLoading}
-                  >
-                    Testar Conexão com Google Drive
-                  </Button>
+                  <div className="md:col-span-2">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={testGoogleDriveIntegration}
+                      disabled={isLoading}
+                      className="flex items-center gap-2"
+                    >
+                      {driveTestSuccess ? (
+                        <Check className="h-4 w-4 text-green-500" />
+                      ) : null}
+                      Testar Conexão com Google Drive
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            <Separator />
-            
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Calendar className="h-5 w-5 text-green-600" />
-                <h3 className="text-lg font-medium">Google Agenda</h3>
-              </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="calendarApiKey"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>API Key</FormLabel>
-                      <FormControl>
-                        <Input placeholder="AIzaSyC..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <Separator />
+              
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Calendar className="h-5 w-5 text-green-600" />
+                  <h3 className="text-lg font-medium">Google Agenda</h3>
+                </div>
                 
-                <FormField
-                  control={form.control}
-                  name="calendarClientId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Client ID</FormLabel>
-                      <FormControl>
-                        <Input placeholder="12345...apps.googleusercontent.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="calendarClientSecret"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel>Client Secret</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="GOCSPX-..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="calendarApiKey"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>API Key</FormLabel>
+                        <FormControl>
+                          <Input placeholder="AIzaSyC..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="calendarClientId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Client ID</FormLabel>
+                        <FormControl>
+                          <Input placeholder="12345...apps.googleusercontent.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="calendarClientSecret"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>Client Secret</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="GOCSPX-..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <div className="md:col-span-2">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={testGoogleCalendarIntegration}
-                    disabled={isLoading}
-                  >
-                    Testar Conexão com Google Agenda
-                  </Button>
+                  <div className="md:col-span-2">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={testGoogleCalendarIntegration}
+                      disabled={isLoading}
+                      className="flex items-center gap-2"
+                    >
+                      {calendarTestSuccess ? (
+                        <Check className="h-4 w-4 text-green-500" />
+                      ) : null}
+                      Testar Conexão com Google Agenda
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            <div className="flex justify-end">
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Salvando..." : "Salvar Configurações"}
-              </Button>
-            </div>
-          </form>
-        </Form>
+              
+              <div className="flex justify-end">
+                <Button 
+                  type="submit" 
+                  disabled={isLoading}
+                  className={theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                >
+                  {isLoading ? "Salvando..." : "Salvar Configurações"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </ScrollArea>
       </CardContent>
     </Card>
   );

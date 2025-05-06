@@ -17,19 +17,24 @@
     --primary-hover: #2563EB;
     --text-primary: #e0e0e0;
     --text-secondary: #a0a0a0;
-    --bg-paper: #1e1e1e;
-    --bg-default: #121212;
+    --bg-paper: #1A1F2C;
+    --bg-default: #0F172A;
   }
 
   /* Estilização de botões e links para hover no tema escuro */
   .dark button:hover, 
   .dark a:hover,
   .dark .hover-element:hover {
-    @apply bg-gray-700 text-white;
+    @apply bg-blue-800 text-white;
   }
   
   /* Melhorar contraste de texto em menus dropdown no tema escuro */
   .dark [data-radix-popper-content-wrapper] * {
     @apply text-gray-200;
+  }
+
+  /* Adicionando cores de fundo para dropdowns no tema escuro */
+  .dark [data-radix-popper-content-wrapper] [data-radix-popper-content] {
+    @apply bg-gray-800 border-gray-700;
   }
 }

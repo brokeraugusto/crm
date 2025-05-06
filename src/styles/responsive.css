@@ -32,7 +32,7 @@
   }
   
   .dark [data-radix-select-item][data-highlighted] {
-    @apply bg-gray-700 text-white;
+    @apply bg-blue-700 text-white;
   }
   
   /* Melhorar visualização em dispositivos móveis */
@@ -61,5 +61,22 @@
     .text-sm {
       font-size: 0.75rem;
     }
+  }
+  
+  /* Melhorar contraste de scroll em dialogs e sheets */
+  .dark .overflow-y-auto::-webkit-scrollbar-thumb {
+    @apply bg-gray-600;
+  }
+
+  .dark .overflow-y-auto::-webkit-scrollbar-track {
+    @apply bg-gray-800;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded;
   }
 }
