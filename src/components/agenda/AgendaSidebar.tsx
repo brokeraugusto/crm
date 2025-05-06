@@ -22,30 +22,32 @@ export function AgendaSidebar({
   eventTypes 
 }: AgendaSidebarProps) {
   return (
-    <Card className="col-span-1">
-      <CardHeader>
+    <Card className="col-span-1 h-full overflow-hidden">
+      <CardHeader className="pb-3">
         <CardTitle>Calendário</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <Calendar
-          mode="single"
-          selected={date}
-          onSelect={setDate}
-          locale={ptBR}
-          className="w-full"
-          modifiers={{
-            hasEvent: (date) => {
-              const dateStr = format(date, "yyyy-MM-dd");
-              return !!eventCountByDate[dateStr];
-            },
-          }}
-          modifiersStyles={{
-            hasEvent: { 
-              fontWeight: "bold",
-              backgroundColor: "rgba(var(--primary), 0.1)"
-            },
-          }}
-        />
+        <div className="px-2">
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={setDate}
+            locale={ptBR}
+            className="w-full"
+            modifiers={{
+              hasEvent: (date) => {
+                const dateStr = format(date, "yyyy-MM-dd");
+                return !!eventCountByDate[dateStr];
+              },
+            }}
+            modifiersStyles={{
+              hasEvent: { 
+                fontWeight: "bold",
+                backgroundColor: "rgba(var(--primary), 0.1)"
+              },
+            }}
+          />
+        </div>
         <div className="p-4 border-t">
           <h3 className="font-medium mb-2">Tipos de Eventos</h3>
           <div className="flex flex-wrap gap-2">
@@ -63,10 +65,10 @@ export function AgendaSidebar({
             <Button 
               variant="outline" 
               size="sm" 
-              className="w-full justify-start text-primary"
+              className="w-full justify-start text-primary truncate"
             >
-              <CalendarIcon className="h-4 w-4 mr-2" />
-              Conectar com Google Agenda
+              <CalendarIcon className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span className="truncate">Conectar com Google Agenda</span>
             </Button>
           </div>
         </div>

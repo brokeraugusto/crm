@@ -14,8 +14,8 @@ export function MainLayout() {
         <Sidebar />
         <div className="relative flex flex-col flex-1 w-full overflow-hidden">
           <Navbar />
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6 max-w-full">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-full">
+          <main className="flex-1 overflow-y-auto p-2 sm:p-4 md:p-6 max-w-full">
+            <div className="container mx-auto px-1 sm:px-4 md:px-6 lg:px-8 max-w-full">
               <Outlet />
             </div>
           </main>
