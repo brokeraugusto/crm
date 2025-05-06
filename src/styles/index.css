@@ -1,0 +1,9 @@
+
+/* Import de todos os arquivos CSS modularizados */
+@import './base.css';
+@import './components.css';
+@import './status-badges.css';
+@import './animations.css';
+@import './themes.css';
+@import './responsive.css';
+@import './root.css';

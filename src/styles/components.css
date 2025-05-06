@@ -1,0 +1,56 @@
+
+@layer components {
+  /* Base card component no theme class needed since we use css variables */
+  .card-container {
+    @apply rounded-lg border border-border shadow-sm;
+  }
+
+  /* animação do popper crescendo */
+  [data-state="open"][data-radix-popper-content-wrapper] {
+    animation: fadeInScale 0.2s ease-out;
+    @apply z-50;
+  }
+
+  /* animação para entrar e sair */
+  .sidebar-slideIn {
+    animation: sidebar-slideIn 0.3s forwards;
+  }
+
+  .sidebar-slideOut {
+    animation: sidebar-slideOut 0.3s forwards;
+  }
+
+  /* Menu do usuário */
+  .user-menu-popup {
+    @apply absolute right-0 mt-2 bg-card border border-border rounded-md shadow-md w-48 py-1 z-50;
+  }
+
+  .user-menu-item {
+    @apply flex items-center px-4 py-2 text-sm hover:bg-secondary/50 w-full text-left;
+  }
+
+  .user-menu-item-danger {
+    @apply flex items-center px-4 py-2 text-sm text-destructive hover:bg-destructive/10 w-full text-left;
+  }
+
+  /* Ajustes para tabelas */
+  .data-table {
+    @apply w-full text-sm text-left overflow-x-auto;
+  }
+
+  .data-table th {
+    @apply px-4 py-2 font-medium bg-secondary/50;
+  }
+
+  .data-table-head-cell {
+    @apply px-4 py-2 font-medium bg-secondary/50;
+  }
+
+  .data-table td {
+    @apply px-4 py-2 border-t border-border;
+  }
+
+  .data-table tr {
+    @apply hover:bg-secondary/30;
+  }
+}

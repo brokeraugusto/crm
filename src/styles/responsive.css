@@ -1,0 +1,65 @@
+
+@layer components {
+  /* Garantir que os inputs tenham texto legível */
+  input, textarea, select {
+    @apply text-foreground;
+  }
+
+  /* Adicionar suporte para telas maiores */
+  @media (min-width: 1536px) {
+    .container {
+      @apply max-w-7xl mx-auto;
+    }
+    
+    .form-wrapper {
+      @apply max-w-5xl mx-auto;
+    }
+  }
+
+  /* Garantir que os itens do menu dropdown sejam legíveis */
+  .dark [data-radix-select-content] [data-radix-select-item],
+  [data-radix-select-content] [data-radix-select-item] {
+    @apply hover:bg-accent hover:text-accent-foreground;
+  }
+  
+  /* Ajustar específicamente os itens do menu dropdown no tema escuro */
+  .dark [data-radix-select-content] {
+    @apply bg-gray-800 border-gray-700;
+  }
+  
+  .dark [data-radix-select-item] {
+    @apply text-gray-200;
+  }
+  
+  .dark [data-radix-select-item][data-highlighted] {
+    @apply bg-gray-700 text-white;
+  }
+  
+  /* Melhorar visualização em dispositivos móveis */
+  @media (max-width: 640px) {
+    .container {
+      @apply px-2;
+    }
+  }
+
+  /* Melhorar visibilidade dos dropdowns */
+  [data-radix-popper-content-wrapper] {
+    @apply z-50;
+  }
+
+  /* Corrigir problema com conteúdo que transborda horizontalmente */
+  .overflow-fix {
+    @apply max-w-full overflow-x-hidden;
+  }
+
+  /* Ajustes para melhorar legibilidade em telas muito pequenas */
+  @media (max-width: 360px) {
+    .text-xs {
+      font-size: 0.65rem;
+    }
+    
+    .text-sm {
+      font-size: 0.75rem;
+    }
+  }
+}

@@ -1,0 +1,43 @@
+
+@layer components {
+  /* Status de lead/imóvel */
+  .status-badge {
+    @apply inline-flex items-center rounded-full px-2 py-1 text-xs font-medium;
+  }
+
+  .status-novo {
+    @apply bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300;
+  }
+
+  .status-andamento {
+    @apply bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300;
+  }
+
+  .status-fechado {
+    @apply bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300;
+  }
+
+  .status-cancelado {
+    @apply bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300;
+  }
+
+  .status-ativo {
+    @apply bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300;
+  }
+
+  .status-inativo {
+    @apply bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300;
+  }
+
+  .status-reservado {
+    @apply bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300;
+  }
+
+  .status-alugado {
+    @apply bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300;
+  }
+
+  .status-vendido {
+    @apply bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300;
+  }
+}
