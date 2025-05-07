@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Imovel } from "@/types/leads";
 import {
@@ -10,6 +9,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Pencil, Trash2, Link, Calendar, Mail, Building2, Share2 } from "lucide-react";
 import { useImoveisOperations } from "@/hooks/useImoveisOperations";
 import {
