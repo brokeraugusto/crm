@@ -7,9 +7,11 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTheme } from "@/components/theme/ThemeProvider";
 
 export default function Configuracoes() {
   const { isMasterAdmin } = useAdmin();
+  const { theme } = useTheme();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("integracoes");
 
@@ -48,7 +50,7 @@ export default function Configuracoes() {
             </TabsContent>
           ) : (
             <TabsContent value="webhooks" className="space-y-6 w-full">
-              <Card>
+              <Card className={theme === 'dark' ? 'bg-gray-800' : ''}>
                 <CardHeader>
                   <CardTitle>Acesso Restrito</CardTitle>
                   <CardDescription>

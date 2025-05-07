@@ -25,7 +25,7 @@ import { useTheme } from "@/components/theme/ThemeProvider";
 
 // Interface for our user_api_keys table that's not yet in the types
 interface ApiKeys {
-  id: string;
+  id?: string;
   user_id: string;
   drive_api_key: string | null;
   drive_client_id: string | null;
@@ -39,17 +39,18 @@ interface ApiKeys {
 
 const googleApiSchema = z.object({
   driveApiKey: z.string().min(1, "API Key do Google Drive é obrigatória"),
-  driveClientId: z.string().min(1, "Client ID do Google Drive é obrigatório"),
-  driveClientSecret: z.string().min(1, "Client Secret do Google Drive é obrigatório"),
+  driveClientId: z.string().min(1, "Client ID do OAuth é obrigatório"),
+  driveClientSecret: z.string().min(1, "Client Secret do OAuth é obrigatório"),
   calendarApiKey: z.string().min(1, "API Key do Google Agenda é obrigatória"),
-  calendarClientId: z.string().min(1, "Client ID do Google Agenda é obrigatório"),
-  calendarClientSecret: z.string().min(1, "Client Secret do Google Agenda é obrigatório"),
+  calendarClientId: z.string().min(1, "Client ID do OAuth é obrigatório"),
+  calendarClientSecret: z.string().min(1, "Client Secret do OAuth é obrigatório"),
 });
 
 export function GoogleIntegrationForm() {
   const { theme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [existingRecordId, setExistingRecordId] = useState<string | null>(null);
   const [driveTestSuccess, setDriveTestSuccess] = useState(false);
   const [calendarTestSuccess, setCalendarTestSuccess] = useState(false);
   
@@ -90,6 +91,9 @@ export function GoogleIntegrationForm() {
         }
         
         if (data) {
+          // Store the existing record ID for use during update
+          setExistingRecordId(data.id);
+          
           form.reset({
             driveApiKey: data.drive_api_key || "",
             driveClientId: data.drive_client_id || "",
@@ -189,29 +193,50 @@ export function GoogleIntegrationForm() {
     setIsLoading(true);
     
     try {
-      const { error } = await supabase
-        .from('user_api_keys')
-        .upsert({
-          user_id: userId,
-          drive_api_key: values.driveApiKey,
-          drive_client_id: values.driveClientId,
-          drive_client_secret: values.driveClientSecret,
-          calendar_api_key: values.calendarApiKey,
-          calendar_client_id: values.calendarClientId,
-          calendar_client_secret: values.calendarClientSecret,
-          updated_at: new Date().toISOString()
-        } as ApiKeys);
-        
+      const apiKeyData: ApiKeys = {
+        user_id: userId,
+        drive_api_key: values.driveApiKey,
+        drive_client_id: values.driveClientId,
+        drive_client_secret: values.driveClientSecret,
+        calendar_api_key: values.calendarApiKey,
+        calendar_client_id: values.calendarClientId,
+        calendar_client_secret: values.calendarClientSecret,
+        updated_at: new Date().toISOString()
+      };
+      
+      let error;
+      
+      // If we have an existing record ID, update the record instead of inserting a new one
+      if (existingRecordId) {
+        console.log("Updating existing record:", existingRecordId);
+        const response = await supabase
+          .from('user_api_keys')
+          .update(apiKeyData)
+          .eq('id', existingRecordId);
+          
+        error = response.error;
+      } else {
+        console.log("Inserting new record");
+        const response = await supabase
+          .from('user_api_keys')
+          .insert(apiKeyData);
+          
+        error = response.error;
+      }
+      
       if (error) {
+        console.error("Error saving settings:", error);
         throw error;
       }
       
       toast.success("Configurações salvas", {
         description: "Suas credenciais do Google foram salvas com sucesso.",
       });
+      
     } catch (error: any) {
-      toast.error("Erro", {
-        description: `Erro ao salvar configurações: ${error.message}`,
+      console.error("Detailed error:", error);
+      toast.error("Erro ao salvar configurações", {
+        description: error.message || "Houve um problema ao salvar suas configurações.",
       });
     } finally {
       setIsLoading(false);
@@ -268,10 +293,13 @@ export function GoogleIntegrationForm() {
                     name="driveClientId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Client ID</FormLabel>
+                        <FormLabel>Client ID (OAuth)</FormLabel>
                         <FormControl>
                           <Input placeholder="12345...apps.googleusercontent.com" {...field} />
                         </FormControl>
+                        <FormDescription>
+                          Mesmo Client ID para Drive e Agenda
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -282,10 +310,13 @@ export function GoogleIntegrationForm() {
                     name="driveClientSecret"
                     render={({ field }) => (
                       <FormItem className="md:col-span-2">
-                        <FormLabel>Client Secret</FormLabel>
+                        <FormLabel>Client Secret (OAuth)</FormLabel>
                         <FormControl>
                           <Input type="password" placeholder="GOCSPX-..." {...field} />
                         </FormControl>
+                        <FormDescription>
+                          Mesmo Client Secret para Drive e Agenda
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -336,10 +367,13 @@ export function GoogleIntegrationForm() {
                     name="calendarClientId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Client ID</FormLabel>
+                        <FormLabel>Client ID (OAuth)</FormLabel>
                         <FormControl>
                           <Input placeholder="12345...apps.googleusercontent.com" {...field} />
                         </FormControl>
+                        <FormDescription>
+                          Mesmo Client ID para Drive e Agenda
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -350,10 +384,13 @@ export function GoogleIntegrationForm() {
                     name="calendarClientSecret"
                     render={({ field }) => (
                       <FormItem className="md:col-span-2">
-                        <FormLabel>Client Secret</FormLabel>
+                        <FormLabel>Client Secret (OAuth)</FormLabel>
                         <FormControl>
                           <Input type="password" placeholder="GOCSPX-..." {...field} />
                         </FormControl>
+                        <FormDescription>
+                          Mesmo Client Secret para Drive e Agenda
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
