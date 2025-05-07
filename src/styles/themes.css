@@ -18,7 +18,7 @@
     --text-primary: #e0e0e0;
     --text-secondary: #a0a0a0;
     --bg-paper: #172042;
-    --bg-default: #0F1A36;
+    --bg-default: #0F1A36;  /* Azul marinho mais amigável em vez do preto */
   }
 
   /* Estilização de botões e links para hover no tema escuro */

@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { FileHandler } from "@/services/FileHandler";
 
 // Tipos de documentos suportados
 export type TipoDocumento = 
@@ -73,9 +74,36 @@ export function useDocumentos() {
     }
   };
 
+  // Função para fazer upload de um arquivo para o Google Drive
+  const uploadTemplateFile = async (file: File): Promise<{success: boolean; fileUrl?: string}> => {
+    setLoading(true);
+    
+    try {
+      const result = await FileHandler.uploadToGoogleDrive(file);
+      
+      if (!result.success) {
+        throw new Error(result.error || "Falha ao fazer upload do arquivo");
+      }
+      
+      return {
+        success: true,
+        fileUrl: result.fileId
+      };
+    } catch (error: any) {
+      console.error("Erro ao fazer upload do template:", error);
+      toast.error("Erro ao fazer upload do template");
+      return {
+        success: false
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
     gerarDocumento,
-    configurarGoogleDrive
+    configurarGoogleDrive,
+    uploadTemplateFile
   };
 }

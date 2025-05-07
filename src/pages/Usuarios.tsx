@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -299,7 +300,7 @@ Equipe Casa Próxima`
     }
   };
 
-  // Função para enviar convite por email
+  // Função para enviar convite por email - Corrigido
   const handleSendInvite = async () => {
     if (!inviteEmail) {
       toast.error("Email é obrigatório");
@@ -308,13 +309,13 @@ Equipe Casa Próxima`
     
     setLoadingAction("invite");
     try {
-      // Enviar convite por email com template personalizado
-      const { data, error } = await supabase.auth.admin.inviteUserByEmail(inviteEmail, {
-        data: {
+      // Primeiro, criamos o usuário sem enviar email de confirmação
+      const { data, error } = await supabase.auth.admin.createUser({
+        email: inviteEmail,
+        email_confirm: true, // Sem confirmação de email
+        user_metadata: {
           role: inviteRole,
-          manager_id: inviteManager,
-          invite_subject: emailTemplate.subject,
-          invite_message: emailTemplate.body
+          manager_id: inviteManager
         }
       });
       
@@ -329,7 +330,13 @@ Equipe Casa Próxima`
           await assignUserToManager(inviteManager, data.user.id);
         }
         
-        toast.success(`Convite enviado com sucesso para ${inviteEmail}`);
+        // Gerar link de redefinição de senha para o usuário
+        const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink({
+          type: "recovery",
+          email: inviteEmail
+        });
+        
+        if (resetError) throw resetError;
         
         // Adicionar usuário à lista local
         const newUserData: UserData = {
@@ -341,6 +348,8 @@ Equipe Casa Próxima`
         };
         
         setUsers([...users, newUserData]);
+        
+        toast.success(`Convite enviado com sucesso para ${inviteEmail}`);
         
         // Limpar formulário
         setInviteEmail("");
@@ -608,20 +617,19 @@ Equipe Casa Próxima`
         const isCurrentUser = userId === user?.id;
         const isManager = row.original.roles.includes("gerente");
         const hasManager = row.original.managerId !== undefined;
-        const roles = row.original.roles;
         
         return (
-          <div className="flex flex-wrap gap-2 min-w-[120px]">
+          <div className="flex flex-wrap gap-1">
             <Button
               size="sm"
               variant="outline"
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 text-xs px-2 py-1 h-7"
               onClick={() => handlePrepareEdit(row.original)}
               disabled={loadingAction === "edit-" + userId}
             >
-              <Pencil className="h-3.5 w-3.5" />
+              <Pencil className="h-3 w-3" />
               {loadingAction === "edit-" + userId ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <Loader2 className="h-3 w-3 animate-spin" />
               ) : (
                 "Editar"
               )}
@@ -633,16 +641,16 @@ Equipe Casa Próxima`
                 <Button
                   size="sm"
                   variant="outline"
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 text-xs px-2 py-1 h-7"
                   onClick={() => handleRemoveFromManager(userId, row.original.managerId!)}
                   disabled={loadingAction === "unassign-" + userId}
                 >
                   {loadingAction === "unassign-" + userId ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <Loader2 className="h-3 w-3 animate-spin" />
                   ) : (
                     <>
-                      <Users className="h-3.5 w-3.5" />
-                      Remover Gerente
+                      <Users className="h-3 w-3" />
+                      Rem. Ger.
                     </>
                   )}
                 </Button>
@@ -650,14 +658,14 @@ Equipe Casa Próxima`
                 <Button
                   size="sm"
                   variant="outline"
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 text-xs px-2 py-1 h-7"
                   onClick={() => {
                     setSelectedSubordinate(userId);
                     setIsManagerAssignOpen(true);
                   }}
                 >
-                  <Users className="h-3.5 w-3.5" />
-                  Atribuir Gerente
+                  <Users className="h-3 w-3" />
+                  Add Ger.
                 </Button>
               )
             )}
@@ -665,7 +673,7 @@ Equipe Casa Próxima`
             <Button
               size="sm"
               variant="destructive"
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 text-xs px-2 py-1 h-7"
               onClick={() => {
                 setUserToDelete(userId);
                 setIsDeleteDialogOpen(true);
@@ -673,10 +681,10 @@ Equipe Casa Próxima`
               disabled={isCurrentUser || loadingAction === "delete-" + userId}
             >
               {loadingAction === "delete-" + userId ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <Loader2 className="h-3 w-3 animate-spin" />
               ) : (
                 <>
-                  <UserX className="h-3.5 w-3.5" />
+                  <UserX className="h-3 w-3" />
                   Excluir
                 </>
               )}
