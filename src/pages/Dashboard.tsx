@@ -13,10 +13,13 @@ import { ptBR } from "date-fns/locale";
 
 export default function Dashboard() {
   const { isMasterAdmin } = useAdmin();
-  const { data: leads } = useLeads();
-  const { data: imoveis } = useImoveis();
-  const { data: atividades } = useTodasAtividades();
-  const { data: documentos } = useDocumentos();
+  const { leads } = useLeads();
+  const { imoveis } = useImoveis();
+  const { atividades } = useTodasAtividades();
+  const { loading: documentosLoading, gerarDocumento } = useDocumentos();
+  
+  // Calcular o número de documentos (simulação já que não temos esse dado diretamente)
+  const documentos = [];
   
   const dataAtual = new Date();
   const inicioSemana = new Date(dataAtual);
