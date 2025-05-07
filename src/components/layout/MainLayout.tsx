@@ -10,7 +10,7 @@ export function MainLayout() {
         <Sidebar />
         <div className="relative flex flex-col flex-1 w-full overflow-hidden">
           <Navbar />
-          <main className="flex-1 overflow-y-auto p-2 sm:p-4 md:p-6 max-w-full px-[80px]">
+          <main className="flex-1 overflow-y-auto p-2 sm:p-4 md:p-6 max-w-full mx-0 my-0 py-[24px] px-[100px]">
             <div className="container mx-auto px-1 sm:px-4 md:px-6 lg:px-8 pl-[calc(var(--sidebar-offset,0px)+8px)] transition-all duration-300 max-w-full">
               <Outlet />
             </div>
