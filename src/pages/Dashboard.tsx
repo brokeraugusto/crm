@@ -41,8 +41,8 @@ export default function Dashboard() {
   const semana = `${format(inicioSemana, "d 'de' MMMM", { locale: ptBR })} - ${format(fimSemana, "d 'de' MMMM", { locale: ptBR })}`;
   
   return (
-    <div className="space-y-6 animate-fade-in max-w-full overflow-x-hidden">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-6 animate-fade-in w-full max-w-full pb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-wrap">
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
         <div className="flex flex-wrap gap-2">
           <Button asChild size="sm" className="flex items-center">

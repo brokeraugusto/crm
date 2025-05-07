@@ -18,6 +18,17 @@ export function useSidebar() {
   if (!context) {
     throw new Error("useSidebar must be used within a SidebarProvider");
   }
+  
+  // Update CSS variable for content offset based on sidebar state
+  React.useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.style.setProperty(
+        '--sidebar-offset', 
+        context.isMobile ? '0' : context.open ? '16rem' : '5rem'
+      );
+    }
+  }, [context.open, context.isMobile]);
+  
   return context;
 }
 
