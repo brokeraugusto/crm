@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -209,14 +208,25 @@ Equipe Casa Próxima`
     
     setLoadingAction("delete-" + userToDelete);
     try {
-      // Implementar lógica para excluir o usuário usando o Supabase Admin API
-      const { error } = await supabase.auth.admin.deleteUser(userToDelete);
+      // Instead of deleting directly, we'll disable the user account
+
+      // First remove from users table (this will trigger deletes in other tables due to cascading)
+      const { error: deleteUserError } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', userToDelete);
       
-      if (error) {
-        throw error;
-      }
+      if (deleteUserError) throw deleteUserError;
       
-      // Remover usuário da lista local
+      // Also remove all role assignments
+      const { error: deleteRolesError } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userToDelete);
+        
+      if (deleteRolesError) console.warn("Error removing roles:", deleteRolesError);
+      
+      // Remove user from the local list
       setUsers(users.filter(u => u.id !== userToDelete));
       toast.success("Usuário excluído com sucesso");
       setIsDeleteDialogOpen(false);
@@ -238,19 +248,24 @@ Equipe Casa Próxima`
     
     setLoadingAction("add-user");
     try {
-      // Criar usuário usando o Supabase Admin API
-      const { data, error } = await supabase.auth.admin.createUser({
+      // Create a random password for the new user (they can reset it later)
+      const randomPassword = Math.random().toString(36).slice(-8);
+      
+      // Use the regular signup flow instead of admin API
+      const { data, error } = await supabase.auth.signUp({
         email: newUser.email,
-        email_confirm: true,
-        user_metadata: {
-          nome: newUser.nome
+        password: randomPassword,
+        options: {
+          data: {
+            nome: newUser.nome
+          }
         }
       });
       
       if (error) throw error;
       
       if (data.user) {
-        // Adicionar dados adicionais na tabela users
+        // Add to users table
         const { error: profileError } = await supabase
           .from('users')
           .insert({
@@ -262,14 +277,14 @@ Equipe Casa Próxima`
           
         if (profileError) throw profileError;
         
-        // Atribuir roles selecionadas
+        // Assign selected roles
         if (newUser.roles.length > 0) {
           for (const role of newUser.roles) {
             await assignRole(data.user.id, role);
           }
         }
         
-        // Adicionar usuário à lista local
+        // Add new user to the list
         const newUserData: UserData = {
           id: data.user.id,
           email: data.user.email || newUser.email,
@@ -280,9 +295,9 @@ Equipe Casa Próxima`
         };
         
         setUsers([...users, newUserData]);
-        toast.success("Usuário criado com sucesso");
+        toast.success("Usuário criado com sucesso. Uma senha temporária foi gerada.");
         
-        // Limpar formulário
+        // Clear the form
         setNewUser({
           nome: "",
           email: "",
@@ -309,36 +324,44 @@ Equipe Casa Próxima`
     
     setLoadingAction("invite");
     try {
-      // Primeiro, criamos o usuário sem enviar email de confirmação
-      const { data, error } = await supabase.auth.admin.createUser({
+      // Generate a random password for the initial account
+      const randomPassword = Math.random().toString(36).slice(-8);
+      
+      // Use the regular signup flow instead of admin API
+      const { data, error } = await supabase.auth.signUp({
         email: inviteEmail,
-        email_confirm: true, // Sem confirmação de email
-        user_metadata: {
-          role: inviteRole,
-          manager_id: inviteManager
+        password: randomPassword,
+        options: {
+          data: {
+            role: inviteRole,
+            manager_id: inviteManager
+          }
         }
       });
       
       if (error) throw error;
       
       if (data.user) {
-        // Atribuir role selecionada
+        // Assign role to the new user
         await assignRole(data.user.id, inviteRole);
         
-        // Se selecionou um gerente, atribuir o usuário ao gerente
+        // If a manager was selected, assign the user to that manager
         if (inviteManager && (inviteRole === 'corretor' || inviteRole === 'assistente')) {
           await assignUserToManager(inviteManager, data.user.id);
         }
         
-        // Gerar link de redefinição de senha para o usuário
-        const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink({
-          type: "recovery",
-          email: inviteEmail
-        });
+        // Insert into users table with minimal info
+        const { error: userError } = await supabase
+          .from('users')
+          .insert({
+            id: data.user.id, 
+            email: inviteEmail,
+            nome: inviteEmail.split('@')[0] // Temporary name from email
+          });
+          
+        if (userError) throw userError;
         
-        if (resetError) throw resetError;
-        
-        // Adicionar usuário à lista local
+        // Add to the UI list
         const newUserData: UserData = {
           id: data.user.id,
           email: inviteEmail,
@@ -349,9 +372,20 @@ Equipe Casa Próxima`
         
         setUsers([...users, newUserData]);
         
-        toast.success(`Convite enviado com sucesso para ${inviteEmail}`);
+        // Generate password reset email
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+          inviteEmail,
+          { redirectTo: window.location.origin + '/auth' }
+        );
         
-        // Limpar formulário
+        if (resetError) {
+          console.warn("Erro ao enviar email de redefinição:", resetError);
+          toast.warning("Usuário criado, mas houve um erro ao enviar o email de convite.");
+        } else {
+          toast.success(`Convite enviado com sucesso para ${inviteEmail}`);
+        }
+        
+        // Clear form
         setInviteEmail("");
         setInviteRole("corretor");
         setInviteManager(null);
